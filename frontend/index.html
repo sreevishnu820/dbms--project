@@ -3,118 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQL Command Classifier</title>
+    <title>SQL Command Classifier | DBMS Console</title>
     <style>
-        :root { --bg: #ffffff; --text: #333333; --box-bg: #f9f9f9; --border: #ddd; }
-        body.dark-mode { --bg: #1e1e1e; --text: #f0f0f0; --box-bg: #2d2d2d; --border: #444; }
+        /* Enterprise DBMS Theme */
+        :root { 
+            --bg-body: #1e1e1e; 
+            --bg-panel: #252526; 
+            --bg-tab-active: #1e1e1e;
+            --bg-tab-inactive: #2d2d2d;
+            --border: #3e3e42;
+            --text-main: #d4d4d4; 
+            --text-muted: #858585;
+            --keyword: #569cd6;
+            --string: #ce9178;
+            --primary: #007acc; 
+            --primary-hover: #0098ff;
+            --success: #4caf50;
+            --danger: #f44336;
+        }
         
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; transition: 0.3s; }
-        .container { max-width: 800px; margin: auto; }
+        body.light-mode { 
+            --bg-body: #f3f3f3; 
+            --bg-panel: #ffffff; 
+            --bg-tab-active: #ffffff;
+            --bg-tab-inactive: #e5e5e5;
+            --border: #cccccc;
+            --text-main: #333333; 
+            --text-muted: #666666;
+            --keyword: #0000ff;
+            --string: #a31515;
+            --primary: #007acc; 
+        }
         
-        /* Tab Navigation */
-        .nav-tabs { margin-bottom: 20px; border-bottom: 2px solid #0078D7; padding-bottom: 10px; }
-        .nav-tabs button { background: none; border: none; font-size: 16px; margin-right: 15px; cursor: pointer; color: var(--text); font-weight: bold; }
-        .nav-tabs button:hover { color: #0078D7; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 0; transition: all 0.2s; height: 100vh; display: flex; flex-direction: column; }
         
-        /* Tab Content */
-        .tab-content { display: none; padding: 20px; background: var(--box-bg); border-radius: 8px; margin-top: 10px; border: 1px solid var(--border); }
+        .header { background-color: var(--primary); color: white; padding: 10px 20px; font-size: 1.2rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .theme-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 12px; border-radius: 3px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
+        .theme-btn:hover { background: rgba(255,255,255,0.3); }
+
+        .workspace { padding: 20px; max-width: 1000px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        
+        .tabs { display: flex; border-bottom: 1px solid var(--border); background-color: var(--bg-tab-inactive); padding-top: 8px; padding-left: 8px; }
+        .tab-btn { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; background: var(--bg-tab-inactive); font-size: 14px; color: var(--text-muted); transition: 0.2s; margin-right: 2px; border-top-left-radius: 4px; border-top-right-radius: 4px; font-weight: 600; }
+        .tab-btn.active { background: var(--bg-tab-active); color: var(--text-main); border-color: var(--border); border-bottom-color: var(--bg-tab-active); position: relative; top: 1px; }
+        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.05); }
+        
+        .tab-content { display: none; background: var(--bg-panel); padding: 25px; border: 1px solid var(--border); border-top: none; min-height: 400px; }
         .tab-content.active { display: block; }
         
-        /* Input & Buttons */
-        textarea { width: 100%; height: 100px; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid var(--border); font-size: 16px; background: var(--bg); color: var(--text); box-sizing: border-box; }
-        .btn { background: #0078D7; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        .btn:hover { background: #005a9e; }
-        .btn-success { background: #28a745; margin-left: 10px; }
-        .btn-success:hover { background: #218838; }
+        .editor-label { font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; display: block; letter-spacing: 1px; }
         
-        /* Results */
-        .result-card { margin-top: 20px; padding: 15px; border: 1px solid var(--border); border-radius: 5px; display: none; background: var(--bg); }
-        .badge { display: inline-block; padding: 5px 10px; background-color: #28a745; color: white; border-radius: 3px; font-weight: bold; margin-bottom: 10px; }
+        /* SYNTAX HIGHLIGHTING EDITOR CSS */
+        .editor-wrapper { position: relative; width: 100%; height: 130px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 3px; background-color: #1e1e1e; }
+        .editor-backdrop, .editor-textarea { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; font-size: 15px; font-family: 'Consolas', 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; line-height: 1.5; margin: 0; border: none; }
+        .editor-backdrop { color: #d4d4d4; z-index: 1; overflow-y: auto; overflow-x: hidden; pointer-events: none; }
+        .editor-textarea { background: transparent; color: transparent; caret-color: #d4d4d4; z-index: 2; outline: none; resize: none; overflow-y: auto; }
+        .editor-textarea:focus { box-shadow: inset 0 0 0 1px var(--primary); }
+        
+        /* Highlighting Colors */
+        .hl-keyword { color: #569cd6; font-weight: bold; }
+        .hl-string { color: #ce9178; }
+        .hl-type { color: #4ec9b0; }
+        .hl-comment { color: #6a9955; font-style: italic; }
+        
+        /* Light Mode Highlighting */
+        body.light-mode .editor-wrapper { background-color: #ffffff; }
+        body.light-mode .editor-textarea { caret-color: #333333; }
+        body.light-mode .hl-keyword { color: #0000ff; }
+        body.light-mode .hl-string { color: #a31515; }
+        body.light-mode .hl-type { color: #2b91af; }
+        body.light-mode .hl-comment { color: #008000; }
+        
+        .action-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px dashed var(--border); padding-bottom: 20px; }
+        .btn { padding: 8px 16px; background-color: var(--primary); color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn-export { background-color: var(--bg-tab-inactive); color: var(--text-main); border: 1px solid var(--border); }
+        .btn-export:hover { background-color: var(--border); }
+        
+        .result-grid { display: none; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+        .grid-header { background-color: var(--bg-tab-inactive); padding: 8px 15px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        
+        /* BADGE CSS */
+        .status-badge { color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; text-shadow: 0 1px 1px rgba(0,0,0,0.2); }
+        .status-badge.error { background-color: var(--danger) !important; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--border); }
+        th { width: 150px; color: var(--text-muted); font-weight: normal; border-right: 1px solid var(--border); background: rgba(0,0,0,0.1); }
+        td { font-family: 'Consolas', monospace; color: var(--keyword); }
+        .td-text { font-family: inherit; color: var(--text-main); }
+        
+        h2 { margin-top: 0; color: var(--primary); font-weight: 400; font-size: 1.6rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        h3 { color: var(--primary); margin-top: 25px; font-weight: 500; }
+        code { color: var(--string); font-family: 'Consolas', monospace; }
+        
+        .tree-map { font-family: 'Consolas', monospace; background: var(--bg-body); padding: 20px; border-radius: 3px; border: 1px solid var(--border); color: var(--text-main); font-size: 15px; white-space: pre; overflow-x: auto; margin-bottom: 20px; }
+        .tree-root { color: var(--primary); font-weight: bold; }
+        .tree-node { color: var(--keyword); font-weight: bold; }
+        ul { line-height: 1.6; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <button class="btn" style="float: right;" onclick="toggleTheme()">🌙 Toggle Theme</button>
-        <h1>SQL Command Classifier Engine</h1>
-        
-        <div class="nav-tabs">
-            <button onclick="showTab('classifier')">Classifier</button>
-            <button onclick="showTab('learn')">Learn</button>
-            <button onclick="showTab('help')">Help</button>
-            <button onclick="showTab('dev')">Developed By</button>
+<body onload="highlightSQL()">
+
+    <div class="header">
+        <div>🗄️ SQL Command Classifier</div>
+        <button class="theme-btn" onclick="toggleTheme()">☀️/🌙 Toggle Day/Night</button>
+    </div>
+
+    <div class="workspace">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('classifier')">Query Classifier</button>
+            <button class="tab-btn" onclick="switchTab('learn')">Learn</button>
+            <button class="tab-btn" onclick="switchTab('help')">Help</button>
+            <button class="tab-btn" onclick="switchTab('team')">Developed By</button>
         </div>
 
-        <!-- MAIN CLASSIFIER TAB -->
+        <!-- CLASSIFIER TAB -->
         <div id="classifier" class="tab-content active">
-            <p>Enter a SQL command to analyze its core type (DDL, DML, DQL, DCL, TCL).</p>
-            <textarea id="sqlInput" placeholder="e.g., CREATE TABLE Student (id INT);"></textarea>
+            <span class="editor-label">SQL Query Editor (Live Syntax & Batch Processing)</span>
             
-            <button class="btn" onclick="analyzeSQL()">Classify Command</button>
-            <button class="btn btn-success" onclick="window.print()">📄 Export Report</button>
-
-            <div id="resultCard" class="result-card">
-                <div id="categoryBadge" class="badge"></div>
-                <p><strong>Detected Command:</strong> <span id="commandVal"></span></p>
-                <p><strong>Primary Purpose:</strong> <span id="purposeVal"></span></p>
-                <p><strong>Database Effect:</strong> <span id="effectVal"></span></p>
-                <hr style="border-top: 1px solid var(--border);">
-                <p><em><span id="explanationVal"></span></em></p>
+            <!-- NEW SYNTAX HIGHLIGHTING EDITOR -->
+            <div class="editor-wrapper">
+                <div id="backdrop" class="editor-backdrop"></div>
+                <textarea id="sqlInput" class="editor-textarea" oninput="highlightSQL()" onscroll="syncScroll()" spellcheck="false">-- Enter multiple commands separated by semicolons (;)
+CREATE TABLE users (id INT);
+DROP TABLE users;</textarea>
             </div>
+            
+            <div class="action-bar">
+                <button class="btn" onclick="analyzeSQL()">▶ Execute Parser</button>
+                <button class="btn btn-export" onclick="downloadReport()">💾 Download Report</button>
+            </div>
+
+            <!-- Dynamic Results Container -->
+            <div id="resultsContainer"></div>
+            
         </div>
 
-        <!-- PLACEHOLDER TABS (We will fill these next) -->
+        <!-- LEARN TAB -->
         <div id="learn" class="tab-content">
-            <h2>Learn SQL Commands</h2>
-            <p>Content coming soon...</p>
+            <h2>Module 1 – SQL Fundamentals Concept</h2>
+            <p>SQL commands are strictly grouped into five major categories based on their functional objectives within a Relational Database Management System (RDBMS):</p>
+            
+            <div class="tree-map">
+<span class="tree-root">[STANDARD SQL ENGINE]</span>
+ ├── <span class="tree-node">DDL</span> (Data Definition)  : Modifies schema structure (CREATE, ALTER, DROP, TRUNCATE)
+ ├── <span class="tree-node">DML</span> (Data Manipulation) : Manages row-level data (INSERT, UPDATE, DELETE)
+ ├── <span class="tree-node">DQL</span> (Data Query)        : Retrieves target data (SELECT)
+ ├── <span class="tree-node">DCL</span> (Data Control)      : Manages access security (GRANT, REVOKE)
+ └── <span class="tree-node">TCL</span> (Transaction Control): Manages session states (COMMIT, ROLLBACK)
+            </div>
+
+            <h3>Educational Video Overview</h3>
+            <iframe width="100%" height="400" src="https://www.youtube.com/embed/HXV3zeQKqGY" frameborder="0" allowfullscreen style="border: 1px solid var(--border); border-radius: 3px;"></iframe>
+
+            <h3>References & Acknowledgements</h3>
+            <ul style="color: var(--text-muted);">
+                <li><strong>Book:</strong> <em>Database System Concepts (7th Edition)</em> by Abraham Silberschatz.</li>
+                <li><strong>Website:</strong> W3Schools SQL Tutorial & Documentation.</li>
+                <li><strong>Video:</strong> Programming with Mosh - SQL Tutorial for Beginners.</li>
+            </ul>
         </div>
+
+        <!-- HELP TAB -->
         <div id="help" class="tab-content">
-            <h2>How to Use the Classifier</h2>
-            <p>Content coming soon...</p>
+            <h2>User Manual / Help</h2>
+            <p>Welcome to the SQL Command Classifier. This application utilizes a custom Node.js backend parsing engine to evaluate raw SQL strings and categorize them into standard RDBMS structures.</p>
+            
+            <h3>How to operate the system:</h3>
+            <ol style="color: var(--text-muted); margin-bottom: 25px;">
+                <li><strong>Navigate to Input:</strong> Open the "Query Classifier" tab.</li>
+                <li><strong>Provide Input:</strong> Type or paste any valid SQL command into the text box. <em>(Note: You can batch-process multiple commands by separating them with a semicolon <code>;</code>)</em>.</li>
+                <li><strong>Process Command:</strong> Click the blue <strong>Execute Parser</strong> button.</li>
+                <li><strong>Interpret Output:</strong> Review the Output Console below. It will dynamically generate a classification card for every valid command detected.</li>
+                <li><strong>Generate Log:</strong> Click the <strong>Download Report</strong> button to save a <code>.txt</code> execution log.</li>
+            </ol>
         </div>
-        <div id="dev" class="tab-content">
+
+        <!-- DEVELOPED BY TAB -->
+        <div id="team" class="tab-content">
             <h2>Developed By</h2>
-            <p>Content coming soon...</p>
+            <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 3px; border: 1px solid var(--border); color: var(--text-main);">
+                <p style="margin: 0 0 10px 0;"><strong>Project:</strong> SQL Command Classifier</p>
+                <p style="margin: 0 0 10px 0;"><strong>Module:</strong> DBMS Module 1</p>
+                <p style="margin: 0 0 10px 0;"><strong>Institution:</strong> VIT Chennai</p>
+                <p style="margin: 0 0 20px 0;"><strong>Guided By:</strong> Dr. Swaminathan A., Assistant Professor</p>
+                
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+                
+                <h3 style="margin-top: 0; color: var(--primary);">Team Members</h3>
+                <ul style="list-style-type: none; padding: 0; margin: 0;">
+                    <li style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed var(--border);">
+                        <strong style="font-size: 1.1rem; color: var(--keyword);">Sree Vishnu</strong> (Reg No: 25BCE5223)<br>
+                        <span style="color: var(--text-muted);">Role: Backend API & Integration</span>
+                    </li>
+                    <li style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed var(--border);">
+                        <strong style="font-size: 1.1rem; color: var(--keyword);">Tharun.G</strong> (Reg No: 25BCE5231)<br>
+                        <span style="color: var(--text-muted);">Role: Frontend Interface</span>
+                    </li>
+                    <li>
+                        <strong style="font-size: 1.1rem; color: var(--keyword);">Sriram</strong> (Reg No: 25BCE1444)<br>
+                        <span style="color: var(--text-muted);">Role: Documentation and testing</span>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 
+    <!-- JS Logic -->
     <script>
-        // Tab Navigation Logic
-        function showTab(tabId) {
+        window.batchResults = [];
+
+        function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
         }
 
-        // Dark/Light Mode Logic
         function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
+            document.body.classList.toggle('light-mode');
+            highlightSQL(); // Re-trigger highlight to update theme colors
+        }
+        
+        // --- SYNTAX HIGHLIGHTING LOGIC ---
+        // --- SYNTAX HIGHLIGHTING LOGIC ---
+        // --- BULLETPROOF SYNTAX HIGHLIGHTING LOGIC ---
+        function highlightSQL() {
+            const text = document.getElementById('sqlInput').value;
+            
+            // 1. Escape HTML first so we don't break the DOM
+            let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            
+            // 2. Single-pass replacement (guarantees HTML tags are never corrupted)
+            let highlighted = escaped.replace(/(--.*)|('.*?'|".*?")|\b(CREATE|ALTER|DROP|TRUNCATE|INSERT|UPDATE|DELETE|SELECT|GRANT|REVOKE|COMMIT|ROLLBACK|SAVEPOINT|TABLE|FROM|WHERE|INTO|VALUES|SET|AND|OR|NOT|NULL|PRIMARY|KEY)\b|\b(INT|VARCHAR|CHAR|DATE|BOOLEAN|FLOAT|DOUBLE)\b/gi, function(match, comment, str, keyword, type) {
+                if (comment) return '<span class="hl-comment">' + comment + '</span>';
+                if (str)     return '<span class="hl-string">' + str + '</span>';
+                if (keyword) return '<span class="hl-keyword">' + keyword + '</span>';
+                if (type)    return '<span class="hl-type">' + type + '</span>';
+                return match;
+            });
+            
+            // Fix scrolling alignment issue for trailing newlines
+            if (text.length > 0 && text[text.length - 1] === '\n') {
+                highlighted += ' ';
+            }
+            
+            document.getElementById('backdrop').innerHTML = highlighted;
         }
 
-        // API Fetch Logic
+        function syncScroll() {
+            document.getElementById('backdrop').scrollTop = document.getElementById('sqlInput').scrollTop;
+        }
+        // ---------------------------------
+
         async function analyzeSQL() {
             const sqlText = document.getElementById('sqlInput').value;
-            if (!sqlText) return alert('Please enter a SQL command first.');
+            if (!sqlText.trim()) return alert('Please enter a SQL command in the Query Editor.');
 
-            try {
-                const response = await fetch('http://localhost:3000/classify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sql: sqlText })
-                });
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+            window.batchResults = [];
 
-                const data = await response.json();
-                
-                // Populate the UI with backend data
-                document.getElementById('resultCard').style.display = 'block';
-                document.getElementById('categoryBadge').innerText = data.category;
-                document.getElementById('categoryBadge').style.backgroundColor = data.valid ? '#28a745' : '#dc3545';
-                document.getElementById('commandVal').innerText = data.command;
-                document.getElementById('purposeVal').innerText = data.purpose;
-                document.getElementById('effectVal').innerText = data.effect;
-                document.getElementById('explanationVal').innerText = data.explanation;
-            } catch (error) {
-                console.error("Fetch Error:", error);
-                alert('Connection Error: Is the Node.js server still running in your other terminal?');
+            const commands = sqlText.split(';').map(cmd => cmd.trim()).filter(cmd => cmd.length > 0);
+
+            for (let i = 0; i < commands.length; i++) {
+                try {
+                    const response = await fetch('http://localhost:3000/classify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sql: commands[i] })
+                    });
+
+                    const data = await response.json();
+                    window.batchResults.push({ input: commands[i], ...data });
+
+                    // --- COLOR CODED BADGE LOGIC ---
+                    let badgeColor = '';
+                    if (data.valid) {
+                        const cat = data.category.toUpperCase();
+                        if (cat.includes('DDL')) badgeColor = 'background-color: #3b82f6;';      // Blue
+                        else if (cat.includes('DML')) badgeColor = 'background-color: #f97316;'; // Orange
+                        else if (cat.includes('DQL')) badgeColor = 'background-color: #10b981;'; // Green
+                        else if (cat.includes('DCL')) badgeColor = 'background-color: #a855f7;'; // Purple
+                        else if (cat.includes('TCL')) badgeColor = 'background-color: #ef4444;'; // Red
+                        else badgeColor = 'background-color: var(--success);';
+                    }
+                    const badgeClass = data.valid ? 'status-badge' : 'status-badge error';
+                    // -------------------------------
+
+                    const resultHTML = `
+                        <div class="result-grid" style="display: block;">
+                            <div class="grid-header">
+                                <span>Command ${i + 1}: <code style="text-transform: none; background: rgba(0,0,0,0.2); padding: 2px 6px;">${commands[i]}</code></span>
+                                <span class="${badgeClass}" style="${badgeColor}">${data.category} DETECTED</span>
+                            </div>
+                            <table>
+                                <tr>
+                                    <th>Detected Keyword</th>
+                                    <td>${data.command}</td>
+                                </tr>
+                                <tr>
+                                    <th>Primary Purpose</th>
+                                    <td class="td-text">${data.purpose}</td>
+                                </tr>
+                                <tr>
+                                    <th>Database Effect</th>
+                                    <td class="td-text">${data.effect}</td>
+                                </tr>
+                                <tr>
+                                    <th>Engine Analysis</th>
+                                    <td class="td-text" style="font-style: italic; color: var(--text-muted);">${data.explanation}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    `;
+                    container.innerHTML += resultHTML;
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(`Connection refused on Command ${i + 1}. Ensure the Node.js backend is running on port 3000.`);
+                    break; 
+                }
             }
+        }
+
+        function downloadReport() {
+            if (window.batchResults.length === 0) return alert('Run the parser before downloading the report.');
+            
+            let reportContent = `DBMS BATCH EXECUTION LOG\n=========================================\n`;
+            
+            window.batchResults.forEach((res, index) => {
+                reportContent += `\n--- [COMMAND ${index + 1}] ---\n`;
+                reportContent += `Input:    ${res.input}\n`;
+                reportContent += `Category: ${res.category}\n`;
+                reportContent += `Keyword:  ${res.command}\n`;
+                reportContent += `Purpose:  ${res.purpose}\n`;
+                reportContent += `Effect:   ${res.effect}\n`;
+                reportContent += `Analysis: ${res.explanation}\n`;
+                reportContent += `-----------------------------------------\n`;
+            });
+
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Query_Execution_Report.txt';
+            link.click();
         }
     </script>
 </body>
