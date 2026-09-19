@@ -53,20 +53,18 @@
         
         .editor-label { font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; display: block; letter-spacing: 1px; }
         
-        /* SYNTAX HIGHLIGHTING EDITOR CSS */
+        /* SYNTAX HIGHLIGHTING EDITOR */
         .editor-wrapper { position: relative; width: 100%; height: 130px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 3px; background-color: #1e1e1e; }
         .editor-backdrop, .editor-textarea { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; font-size: 15px; font-family: 'Consolas', 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; line-height: 1.5; margin: 0; border: none; }
         .editor-backdrop { color: #d4d4d4; z-index: 1; overflow-y: auto; overflow-x: hidden; pointer-events: none; }
         .editor-textarea { background: transparent; color: transparent; caret-color: #d4d4d4; z-index: 2; outline: none; resize: none; overflow-y: auto; }
         .editor-textarea:focus { box-shadow: inset 0 0 0 1px var(--primary); }
         
-        /* Highlighting Colors */
         .hl-keyword { color: #569cd6; font-weight: bold; }
         .hl-string { color: #ce9178; }
         .hl-type { color: #4ec9b0; }
         .hl-comment { color: #6a9955; font-style: italic; }
         
-        /* Light Mode Highlighting */
         body.light-mode .editor-wrapper { background-color: #ffffff; }
         body.light-mode .editor-textarea { caret-color: #333333; }
         body.light-mode .hl-keyword { color: #0000ff; }
@@ -80,18 +78,35 @@
         .btn-export { background-color: var(--bg-tab-inactive); color: var(--text-main); border: 1px solid var(--border); }
         .btn-export:hover { background-color: var(--border); }
         
+        /* History Panel */
+        .history-container { margin-bottom: 20px; border: 1px solid var(--border); padding: 15px; border-radius: 3px; background: var(--bg-body); }
+        .history-item { cursor: pointer; color: var(--primary); font-family: 'Consolas', monospace; font-size: 13px; margin-bottom: 8px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-item:hover { text-decoration: underline; color: var(--primary-hover); }
+
+        /* Animation Buckets */
+        .buckets-container { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .bucket { padding: 12px 20px; border-radius: 5px; border: 2px solid var(--border); background: var(--bg-tab-inactive); color: var(--text-muted); font-weight: bold; transition: all 0.4s ease; text-align: center; flex: 1; opacity: 0.4; transform: scale(0.95); cursor: pointer; }
+        .bucket:hover { filter: brightness(1.2); }
+        .bucket.active-ddl { background: #3b82f6; color: white; border-color: #3b82f6; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+        .bucket.active-dml { background: #f97316; color: white; border-color: #f97316; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(249, 115, 22, 0.5); }
+        .bucket.active-dql { background: #10b981; color: white; border-color: #10b981; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
+        .bucket.active-dcl { background: #a855f7; color: white; border-color: #a855f7; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(168, 85, 247, 0.5); }
+        .bucket.active-tcl { background: #ef4444; color: white; border-color: #ef4444; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+        
         .result-grid { display: none; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
         .grid-header { background-color: var(--bg-tab-inactive); padding: 8px 15px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        
-        /* BADGE CSS */
         .status-badge { color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; text-shadow: 0 1px 1px rgba(0,0,0,0.2); }
         .status-badge.error { background-color: var(--danger) !important; }
         
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--border); }
-        th { width: 150px; color: var(--text-muted); font-weight: normal; border-right: 1px solid var(--border); background: rgba(0,0,0,0.1); }
+        th { width: 150px; color: var(--text-muted); font-weight: normal; border-right: 1px solid var(--border); background: rgba(0,0,0,0.1); vertical-align: top; }
         td { font-family: 'Consolas', monospace; color: var(--keyword); }
         .td-text { font-family: inherit; color: var(--text-main); }
+        
+        /* Python Generator Code Block */
+        .python-snippet { background: #1e1e1e; color: #d4d4d4; padding: 15px; font-family: 'Consolas', monospace; font-size: 13px; border-radius: 3px; margin-top: 5px; border: 1px solid #333; overflow-x: auto; }
+        body.light-mode .python-snippet { background: #f3f3f3; color: #333; border: 1px solid #ccc; }
         
         h2 { margin-top: 0; color: var(--primary); font-weight: 400; font-size: 1.6rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         h3 { color: var(--primary); margin-top: 25px; font-weight: 500; }
@@ -103,7 +118,7 @@
         ul { line-height: 1.6; }
     </style>
 </head>
-<body onload="highlightSQL()">
+<body>
 
     <div class="header">
         <div>🗄️ SQL Command Classifier</div>
@@ -120,9 +135,14 @@
 
         <!-- CLASSIFIER TAB -->
         <div id="classifier" class="tab-content active">
+            
+            <div id="historyContainer" class="history-container" style="display:none;">
+                <span class="editor-label">Recent Queries (Saved Locally)</span>
+                <div id="historyList"></div>
+            </div>
+
             <span class="editor-label">SQL Query Editor (Live Syntax & Batch Processing)</span>
             
-            <!-- NEW SYNTAX HIGHLIGHTING EDITOR -->
             <div class="editor-wrapper">
                 <div id="backdrop" class="editor-backdrop"></div>
                 <textarea id="sqlInput" class="editor-textarea" oninput="highlightSQL()" onscroll="syncScroll()" spellcheck="false">-- Enter multiple commands separated by semicolons (;)
@@ -135,7 +155,15 @@ DROP TABLE users;</textarea>
                 <button class="btn btn-export" onclick="downloadReport()">💾 Download Report</button>
             </div>
 
-            <!-- Dynamic Results Container -->
+            <!-- Clickable Buckets -->
+            <div class="buckets-container" id="bucketsContainer" style="display:none;">
+                <div id="bucket-DDL" class="bucket" onclick="filterCategory('DDL')">DDL</div>
+                <div id="bucket-DML" class="bucket" onclick="filterCategory('DML')">DML</div>
+                <div id="bucket-DQL" class="bucket" onclick="filterCategory('DQL')">DQL</div>
+                <div id="bucket-DCL" class="bucket" onclick="filterCategory('DCL')">DCL</div>
+                <div id="bucket-TCL" class="bucket" onclick="filterCategory('TCL')">TCL</div>
+            </div>
+
             <div id="resultsContainer"></div>
             
         </div>
@@ -176,6 +204,7 @@ DROP TABLE users;</textarea>
                 <li><strong>Provide Input:</strong> Type or paste any valid SQL command into the text box. <em>(Note: You can batch-process multiple commands by separating them with a semicolon <code>;</code>)</em>.</li>
                 <li><strong>Process Command:</strong> Click the blue <strong>Execute Parser</strong> button.</li>
                 <li><strong>Interpret Output:</strong> Review the Output Console below. It will dynamically generate a classification card for every valid command detected.</li>
+                <li><strong>Filter Results:</strong> Click on any of the category buckets (DDL, DML, etc.) to filter the visible results. Click it again to show all.</li>
                 <li><strong>Generate Log:</strong> Click the <strong>Download Report</strong> button to save a <code>.txt</code> execution log.</li>
             </ol>
         </div>
@@ -185,9 +214,8 @@ DROP TABLE users;</textarea>
             <h2>Developed By</h2>
             <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 3px; border: 1px solid var(--border); color: var(--text-main);">
                 <p style="margin: 0 0 10px 0;"><strong>Project:</strong> SQL Command Classifier</p>
-                <p style="margin: 0 0 10px 0;"><strong>Module:</strong> DBMS Module 1</p>
                 <p style="margin: 0 0 10px 0;"><strong>Institution:</strong> VIT Chennai</p>
-                <p style="margin: 0 0 20px 0;"><strong>Guided By:</strong> Dr. Swaminathan A., Assistant Professor</p>
+                <p style="margin: 0 0 20px 0;"><strong>Guided By:</strong> Dr. Swaminathan A , Professor</p>
                 
                 <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
                 
@@ -213,6 +241,12 @@ DROP TABLE users;</textarea>
     <!-- JS Logic -->
     <script>
         window.batchResults = [];
+        let currentFilter = null; // Tracks active filter
+
+        window.onload = function() {
+            highlightSQL();
+            loadHistory();
+        };
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -223,19 +257,67 @@ DROP TABLE users;</textarea>
 
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
-            highlightSQL(); // Re-trigger highlight to update theme colors
+            highlightSQL(); 
+        }
+
+        // --- FILTERING LOGIC ---
+        function filterCategory(cat) {
+            const isAlreadyFiltered = document.getElementById('bucket-' + cat).classList.contains('focus-filter');
+            
+            // Reset all visually
+            document.querySelectorAll('.bucket').forEach(b => {
+                b.classList.remove('focus-filter');
+                b.style.opacity = isAlreadyFiltered ? '' : '0.2'; 
+            });
+
+            // If we are applying a new filter (not removing it)
+            if (!isAlreadyFiltered) {
+                document.getElementById('bucket-' + cat).classList.add('focus-filter');
+                document.getElementById('bucket-' + cat).style.opacity = '1';
+            }
+
+            // Hide/show the result cards
+            document.querySelectorAll('.result-grid').forEach(grid => {
+                if (isAlreadyFiltered || grid.getAttribute('data-category') === cat) {
+                    grid.style.display = 'block';
+                } else {
+                    grid.style.display = 'none';
+                }
+            });
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('sqlHistory') || '[]');
+            const list = document.getElementById('historyList');
+            const container = document.getElementById('historyContainer');
+            if (history.length > 0) {
+                container.style.display = 'block';
+                list.innerHTML = history.reverse().slice(0, 5).map(q => 
+                    `<span class="history-item" onclick="loadQuery(this.innerText)">${q.replace(/</g, '&lt;')}</span>`
+                ).join('');
+            }
+        }
+
+        function loadQuery(q) {
+            document.getElementById('sqlInput').value = q;
+            highlightSQL();
+            window.scrollTo(0, 0);
+        }
+
+        function saveToHistory(sql) {
+            if (!sql.trim()) return;
+            let history = JSON.parse(localStorage.getItem('sqlHistory') || '[]');
+            if (history[history.length - 1] !== sql) {
+                history.push(sql);
+                localStorage.setItem('sqlHistory', JSON.stringify(history));
+            }
+            loadHistory();
         }
         
-        // --- SYNTAX HIGHLIGHTING LOGIC ---
-        // --- SYNTAX HIGHLIGHTING LOGIC ---
-        // --- BULLETPROOF SYNTAX HIGHLIGHTING LOGIC ---
         function highlightSQL() {
             const text = document.getElementById('sqlInput').value;
-            
-            // 1. Escape HTML first so we don't break the DOM
             let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             
-            // 2. Single-pass replacement (guarantees HTML tags are never corrupted)
             let highlighted = escaped.replace(/(--.*)|('.*?'|".*?")|\b(CREATE|ALTER|DROP|TRUNCATE|INSERT|UPDATE|DELETE|SELECT|GRANT|REVOKE|COMMIT|ROLLBACK|SAVEPOINT|TABLE|FROM|WHERE|INTO|VALUES|SET|AND|OR|NOT|NULL|PRIMARY|KEY)\b|\b(INT|VARCHAR|CHAR|DATE|BOOLEAN|FLOAT|DOUBLE)\b/gi, function(match, comment, str, keyword, type) {
                 if (comment) return '<span class="hl-comment">' + comment + '</span>';
                 if (str)     return '<span class="hl-string">' + str + '</span>';
@@ -244,26 +326,32 @@ DROP TABLE users;</textarea>
                 return match;
             });
             
-            // Fix scrolling alignment issue for trailing newlines
             if (text.length > 0 && text[text.length - 1] === '\n') {
                 highlighted += ' ';
             }
-            
             document.getElementById('backdrop').innerHTML = highlighted;
         }
 
         function syncScroll() {
             document.getElementById('backdrop').scrollTop = document.getElementById('sqlInput').scrollTop;
         }
-        // ---------------------------------
 
         async function analyzeSQL() {
             const sqlText = document.getElementById('sqlInput').value;
             if (!sqlText.trim()) return alert('Please enter a SQL command in the Query Editor.');
 
+            saveToHistory(sqlText);
+
             const container = document.getElementById('resultsContainer');
             container.innerHTML = '';
             window.batchResults = [];
+            currentFilter = null; // reset filters on new run
+
+            document.querySelectorAll('.bucket').forEach(b => {
+                b.className = 'bucket';
+                b.style.opacity = '0.4'; // reset to dim state
+            });
+            document.getElementById('bucketsContainer').style.display = 'flex';
 
             const commands = sqlText.split(';').map(cmd => cmd.trim()).filter(cmd => cmd.length > 0);
 
@@ -278,22 +366,40 @@ DROP TABLE users;</textarea>
                     const data = await response.json();
                     window.batchResults.push({ input: commands[i], ...data });
 
-                    // --- COLOR CODED BADGE LOGIC ---
                     let badgeColor = '';
+                    let cat = '';
                     if (data.valid) {
-                        const cat = data.category.toUpperCase();
-                        if (cat.includes('DDL')) badgeColor = 'background-color: #3b82f6;';      // Blue
-                        else if (cat.includes('DML')) badgeColor = 'background-color: #f97316;'; // Orange
-                        else if (cat.includes('DQL')) badgeColor = 'background-color: #10b981;'; // Green
-                        else if (cat.includes('DCL')) badgeColor = 'background-color: #a855f7;'; // Purple
-                        else if (cat.includes('TCL')) badgeColor = 'background-color: #ef4444;'; // Red
-                        else badgeColor = 'background-color: var(--success);';
+                        cat = data.category.toUpperCase().substring(0, 3);
+                        const bucket = document.getElementById('bucket-' + cat);
+                        if (bucket) {
+                            setTimeout(() => {
+                                bucket.classList.add('active-' + cat.toLowerCase());
+                                bucket.style.opacity = '1';
+                            }, i * 200); 
+                        }
+                        
+                        if (cat === 'DDL') badgeColor = 'background-color: #3b82f6;';      
+                        else if (cat === 'DML') badgeColor = 'background-color: #f97316;'; 
+                        else if (cat === 'DQL') badgeColor = 'background-color: #10b981;'; 
+                        else if (cat === 'DCL') badgeColor = 'background-color: #a855f7;'; 
+                        else if (cat === 'TCL') badgeColor = 'background-color: #ef4444;'; 
+                    } else {
+                        badgeColor = 'background-color: var(--danger);';
                     }
                     const badgeClass = data.valid ? 'status-badge' : 'status-badge error';
-                    // -------------------------------
+                    
+                    const safeQuery = commands[i].replace(/"/g, '\\"');
+                    const pythonCode = `<div class="python-snippet">
+<span class="hl-keyword">import</span> sqlite3
+conn = sqlite3.connect(<span class="hl-string">'database.db'</span>)
+cursor = conn.cursor()
+cursor.execute(<span class="hl-string">"""${safeQuery}"""</span>)
+conn.commit()
+conn.close()</div>`;
 
+                    // ADDED data-category attribute for filtering
                     const resultHTML = `
-                        <div class="result-grid" style="display: block;">
+                        <div class="result-grid" data-category="${cat}" style="display: block;">
                             <div class="grid-header">
                                 <span>Command ${i + 1}: <code style="text-transform: none; background: rgba(0,0,0,0.2); padding: 2px 6px;">${commands[i]}</code></span>
                                 <span class="${badgeClass}" style="${badgeColor}">${data.category} DETECTED</span>
@@ -314,6 +420,13 @@ DROP TABLE users;</textarea>
                                 <tr>
                                     <th>Engine Analysis</th>
                                     <td class="td-text" style="font-style: italic; color: var(--text-muted);">${data.explanation}</td>
+                                </tr>
+                                <tr>
+                                    <th>Python Integration</th>
+                                    <td class="td-text">
+                                        <span style="font-size: 12px; color: var(--text-muted);">Generated script for backend execution:</span>
+                                        ${pythonCode}
+                                    </td>
                                 </tr>
                             </table>
                         </div>
