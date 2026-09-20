@@ -5,284 +5,1194 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQL Command Classifier | DBMS Console</title>
     <style>
-        /* Enterprise DBMS Theme */
-        :root { 
-            --bg-body: #1e1e1e; 
-            --bg-panel: #252526; 
-            --bg-tab-active: #1e1e1e;
-            --bg-tab-inactive: #2d2d2d;
-            --border: #3e3e42;
-            --text-main: #d4d4d4; 
-            --text-muted: #858585;
-            --keyword: #569cd6;
-            --string: #ce9178;
-            --primary: #007acc; 
-            --primary-hover: #0098ff;
-            --success: #4caf50;
-            --danger: #f44336;
+        :root {
+            --bg-body: #09111f;
+            --bg-panel: rgba(12, 18, 31, 0.82);
+            --bg-panel-strong: #101a2d;
+            --bg-elevated: rgba(17, 24, 39, 0.94);
+            --bg-muted: rgba(148, 163, 184, 0.12);
+            --border: rgba(148, 163, 184, 0.2);
+            --border-strong: rgba(96, 165, 250, 0.38);
+            --text-main: #e2e8f0;
+            --text-muted: #a5b4c9;
+            --primary: #60a5fa;
+            --primary-strong: #2563eb;
+            --primary-soft: rgba(96, 165, 250, 0.12);
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
+            --radius-xl: 24px;
+            --radius-lg: 18px;
+            --radius-md: 12px;
+            --keyword: #7dd3fc;
+            --string: #f9a8d4;
+            --type: #a7f3d0;
+            --comment: #86efac;
         }
-        
-        body.light-mode { 
-            --bg-body: #f3f3f3; 
-            --bg-panel: #ffffff; 
-            --bg-tab-active: #ffffff;
-            --bg-tab-inactive: #e5e5e5;
-            --border: #cccccc;
-            --text-main: #333333; 
-            --text-muted: #666666;
-            --keyword: #0000ff;
-            --string: #a31515;
-            --primary: #007acc; 
+
+        body.light-mode {
+            --bg-body: #edf3ff;
+            --bg-panel: rgba(255, 255, 255, 0.9);
+            --bg-panel-strong: #ffffff;
+            --bg-elevated: #f8fbff;
+            --bg-muted: rgba(15, 23, 42, 0.04);
+            --border: rgba(148, 163, 184, 0.42);
+            --border-strong: rgba(37, 99, 235, 0.35);
+            --text-main: #192538;
+            --text-muted: #53627c;
+            --primary: #2563eb;
+            --primary-strong: #1d4ed8;
+            --primary-soft: rgba(37, 99, 235, 0.08);
+            --shadow: 0 18px 40px rgba(37, 99, 235, 0.12);
+            --keyword: #1d4ed8;
+            --string: #b91c1c;
+            --type: #0f766e;
+            --comment: #166534;
         }
-        
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 0; transition: all 0.2s; height: 100vh; display: flex; flex-direction: column; }
-        
-        .header { background-color: var(--primary); color: white; padding: 10px 20px; font-size: 1.2rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .theme-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 12px; border-radius: 3px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
-        .theme-btn:hover { background: rgba(255,255,255,0.3); }
 
-        .workspace { padding: 20px; max-width: 1000px; margin: 0 auto; width: 100%; box-sizing: border-box; }
-        
-        .tabs { display: flex; border-bottom: 1px solid var(--border); background-color: var(--bg-tab-inactive); padding-top: 8px; padding-left: 8px; }
-        .tab-btn { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; background: var(--bg-tab-inactive); font-size: 14px; color: var(--text-muted); transition: 0.2s; margin-right: 2px; border-top-left-radius: 4px; border-top-right-radius: 4px; font-weight: 600; }
-        .tab-btn.active { background: var(--bg-tab-active); color: var(--text-main); border-color: var(--border); border-bottom-color: var(--bg-tab-active); position: relative; top: 1px; }
-        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.05); }
-        
-        .tab-content { display: none; background: var(--bg-panel); padding: 25px; border: 1px solid var(--border); border-top: none; min-height: 400px; }
-        .tab-content.active { display: block; }
-        
-        .editor-label { font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; display: block; letter-spacing: 1px; }
-        
-        /* SYNTAX HIGHLIGHTING EDITOR */
-        .editor-wrapper { position: relative; width: 100%; height: 130px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 3px; background-color: #1e1e1e; }
-        .editor-backdrop, .editor-textarea { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; font-size: 15px; font-family: 'Consolas', 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; line-height: 1.5; margin: 0; border: none; }
-        .editor-backdrop { color: #d4d4d4; z-index: 1; overflow-y: auto; overflow-x: hidden; pointer-events: none; }
-        .editor-textarea { background: transparent; color: transparent; caret-color: #d4d4d4; z-index: 2; outline: none; resize: none; overflow-y: auto; }
-        .editor-textarea:focus { box-shadow: inset 0 0 0 1px var(--primary); }
-        
-        .hl-keyword { color: #569cd6; font-weight: bold; }
-        .hl-string { color: #ce9178; }
-        .hl-type { color: #4ec9b0; }
-        .hl-comment { color: #6a9955; font-style: italic; }
-        
-        body.light-mode .editor-wrapper { background-color: #ffffff; }
-        body.light-mode .editor-textarea { caret-color: #333333; }
-        body.light-mode .hl-keyword { color: #0000ff; }
-        body.light-mode .hl-string { color: #a31515; }
-        body.light-mode .hl-type { color: #2b91af; }
-        body.light-mode .hl-comment { color: #008000; }
-        
-        .action-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px dashed var(--border); padding-bottom: 20px; }
-        .btn { padding: 8px 16px; background-color: var(--primary); color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
-        .btn:hover { background-color: var(--primary-hover); }
-        .btn-export { background-color: var(--bg-tab-inactive); color: var(--text-main); border: 1px solid var(--border); }
-        .btn-export:hover { background-color: var(--border); }
-        
-        /* History Panel */
-        .history-container { margin-bottom: 20px; border: 1px solid var(--border); padding: 15px; border-radius: 3px; background: var(--bg-body); }
-        .history-item { cursor: pointer; color: var(--primary); font-family: 'Consolas', monospace; font-size: 13px; margin-bottom: 8px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .history-item:hover { text-decoration: underline; color: var(--primary-hover); }
+        * { box-sizing: border-box; }
 
-        /* Animation Buckets */
-        .buckets-container { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .bucket { padding: 12px 20px; border-radius: 5px; border: 2px solid var(--border); background: var(--bg-tab-inactive); color: var(--text-muted); font-weight: bold; transition: all 0.4s ease; text-align: center; flex: 1; opacity: 0.4; transform: scale(0.95); cursor: pointer; }
-        .bucket:hover { filter: brightness(1.2); }
-        .bucket.active-ddl { background: #3b82f6; color: white; border-color: #3b82f6; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
-        .bucket.active-dml { background: #f97316; color: white; border-color: #f97316; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(249, 115, 22, 0.5); }
-        .bucket.active-dql { background: #10b981; color: white; border-color: #10b981; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
-        .bucket.active-dcl { background: #a855f7; color: white; border-color: #a855f7; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(168, 85, 247, 0.5); }
-        .bucket.active-tcl { background: #ef4444; color: white; border-color: #ef4444; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
-        
-        .result-grid { display: none; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
-        .grid-header { background-color: var(--bg-tab-inactive); padding: 8px 15px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .status-badge { color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; text-shadow: 0 1px 1px rgba(0,0,0,0.2); }
-        .status-badge.error { background-color: var(--danger) !important; }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--border); }
-        th { width: 150px; color: var(--text-muted); font-weight: normal; border-right: 1px solid var(--border); background: rgba(0,0,0,0.1); vertical-align: top; }
-        td { font-family: 'Consolas', monospace; color: var(--keyword); }
-        .td-text { font-family: inherit; color: var(--text-main); }
-        
-        /* Python Generator Code Block */
-        .python-snippet { background: #1e1e1e; color: #d4d4d4; padding: 15px; font-family: 'Consolas', monospace; font-size: 13px; border-radius: 3px; margin-top: 5px; border: 1px solid #333; overflow-x: auto; }
-        body.light-mode .python-snippet { background: #f3f3f3; color: #333; border: 1px solid #ccc; }
-        
-        h2 { margin-top: 0; color: var(--primary); font-weight: 400; font-size: 1.6rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        h3 { color: var(--primary); margin-top: 25px; font-weight: 500; }
-        code { color: var(--string); font-family: 'Consolas', monospace; }
-        
-        .tree-map { font-family: 'Consolas', monospace; background: var(--bg-body); padding: 20px; border-radius: 3px; border: 1px solid var(--border); color: var(--text-main); font-size: 15px; white-space: pre; overflow-x: auto; margin-bottom: 20px; }
-        .tree-root { color: var(--primary); font-weight: bold; }
-        .tree-node { color: var(--keyword); font-weight: bold; }
-        ul { line-height: 1.6; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(96, 165, 250, 0.24), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.12), transparent 26%),
+                var(--bg-body);
+            color: var(--text-main);
+            transition: all 0.25s ease;
+        }
+
+        body.light-mode .editor-wrapper,
+        body.light-mode .result-grid,
+        body.light-mode .tab-content,
+        body.light-mode .history-container,
+        body.light-mode .hero-stat,
+        body.light-mode .editor-panel {
+            box-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
+        }
+
+        .app-shell {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 22px;
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 24px;
+        }
+
+        .sidebar {
+            background: rgba(11, 18, 32, 0.85);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 20px 18px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            min-height: calc(100vh - 80px);
+        }
+
+        body.light-mode .sidebar {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 6px 8px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand-mark {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            font-weight: 800;
+            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+            box-shadow: 0 12px 22px rgba(37, 99, 235, 0.35);
+        }
+
+        .eyebrow {
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 1.02rem;
+            font-weight: 700;
+        }
+
+        .side-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            appearance: none;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 12px;
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn.active {
+            background: var(--primary-soft);
+            color: var(--text-main);
+            border-color: var(--border-strong);
+        }
+
+        .nav-btn:hover:not(.active) {
+            background: var(--bg-muted);
+            color: var(--text-main);
+        }
+
+        .sidebar-card {
+            margin-top: auto;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg-muted);
+            padding: 14px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.8);
+        }
+
+        .theme-btn {
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 9px 14px;
+            background: transparent;
+            color: var(--text-main);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            width: max-content;
+        }
+
+        .theme-btn:hover {
+            transform: translateY(-1px);
+            border-color: var(--border-strong);
+        }
+
+        .main-panel {
+            background: rgba(8, 15, 27, 0.72);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+            min-height: calc(100vh - 80px);
+        }
+
+        body.light-mode .main-panel {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 22px;
+        }
+
+        .topbar h2 {
+            margin: 0;
+            font-size: clamp(1.5rem, 2vw, 2.25rem);
+            letter-spacing: -0.04em;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            background: var(--primary-soft);
+            border: 1px solid var(--border);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.72);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 18px;
+            margin-bottom: 26px;
+        }
+
+        .hero-copy,
+        .hero-stat {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+        }
+
+        .hero-copy {
+            padding: 28px 30px;
+        }
+
+        .hero-copy h3 {
+            margin: 0 0 12px;
+            font-size: clamp(1.8rem, 2.5vw, 2.7rem);
+            line-height: 1.08;
+            letter-spacing: -0.05em;
+        }
+
+        .hero-copy p {
+            margin: 0;
+            max-width: 55ch;
+            color: var(--text-muted);
+            font-size: 1.02rem;
+            line-height: 1.7;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .hero-stat {
+            padding: 22px 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 120px;
+        }
+
+        .hero-stat .value {
+            font-size: clamp(1.7rem, 3vw, 2.4rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+        }
+
+        .hero-stat .label {
+            color: var(--text-muted);
+            font-size: 0.84rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-top: 8px;
+        }
+
+        .workspace {
+            width: 100%;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            padding: 12px 14px 0;
+            box-shadow: var(--shadow);
+        }
+
+        .tab-btn {
+            padding: 12px 18px;
+            border: 1px solid transparent;
+            border-bottom: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 10px 10px 0 0;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--bg-panel-strong);
+            color: var(--text-main);
+            border-color: var(--border);
+            border-bottom-color: var(--bg-panel-strong);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text-main);
+            background: var(--bg-muted);
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            padding: 28px;
+            min-height: 420px;
+            box-shadow: var(--shadow);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .editor-panel {
+            background: var(--bg-panel-strong);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .editor-label {
+            display: block;
+            margin: 0;
+            font-size: 0.76rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .panel-header p {
+            margin: 8px 0 0;
+            color: var(--text-muted);
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            border: 1px solid var(--border-strong);
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .editor-wrapper {
+            position: relative;
+            width: 100%;
+            height: 182px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.94));
+            overflow: hidden;
+        }
+
+        body.light-mode .editor-wrapper {
+            background: linear-gradient(180deg, #f8fbff, #edf3ff);
+        }
+
+        .editor-backdrop,
+        .editor-textarea {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            padding: 18px 20px;
+            box-sizing: border-box;
+            font-size: 15px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: 0;
+            border: none;
+        }
+
+        .editor-backdrop {
+            color: var(--text-main);
+            overflow: auto;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .editor-textarea {
+            background: transparent;
+            color: transparent;
+            caret-color: var(--text-main);
+            z-index: 2;
+            resize: none;
+            outline: none;
+            overflow: auto;
+        }
+
+        .editor-textarea:focus {
+            box-shadow: inset 0 0 0 1px var(--primary);
+        }
+
+        .hl-keyword { color: var(--keyword); font-weight: 700; }
+        .hl-string { color: var(--string); }
+        .hl-type { color: var(--type); }
+        .hl-comment { color: var(--comment); font-style: italic; }
+
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0 18px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.18);
+        }
+
+        .btn-primary {
+            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+        }
+
+        .btn-export {
+            background: var(--bg-muted);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .history-container {
+            margin-bottom: 18px;
+            padding: 18px;
+            background: var(--bg-panel-strong);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+        }
+
+        .history-item {
+            display: block;
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 8px;
+            color: var(--primary);
+            background: var(--primary-soft);
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item:hover {
+            background: var(--bg-muted);
+        }
+
+        .buckets-container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0 24px;
+            justify-content: center;
+        }
+
+        .bucket {
+            flex: 1 1 120px;
+            max-width: 160px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--bg-muted);
+            color: var(--text-muted);
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            opacity: 0.55;
+        }
+
+        .bucket:hover {
+            transform: translateY(-1px);
+            border-color: var(--border-strong);
+        }
+
+        .bucket.focus-filter,
+        .bucket[data-category="DDL"].focus-filter { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-color: rgba(59, 130, 246, 0.8); opacity: 1; }
+        .bucket[data-category="DML"].focus-filter { background: linear-gradient(135deg, #f59e0b, #f97316); color: white; border-color: rgba(245, 158, 11, 0.8); opacity: 1; }
+        .bucket[data-category="DQL"].focus-filter { background: linear-gradient(135deg, #10b981, #059669); color: white; border-color: rgba(16, 185, 129, 0.8); opacity: 1; }
+        .bucket[data-category="DCL"].focus-filter { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border-color: rgba(139, 92, 246, 0.8); opacity: 1; }
+        .bucket[data-category="TCL"].focus-filter { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-color: rgba(239, 68, 68, 0.8); opacity: 1; }
+
+        .results-shell {
+            display: grid;
+            gap: 18px;
+        }
+
+        .results-overview {
+            display: grid;
+            gap: 16px;
+            background: var(--bg-panel-strong);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .results-header h3 {
+            margin: 0;
+            font-size: 1.12rem;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 14px;
+        }
+
+        .kpi-card {
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .kpi-label {
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: clamp(1.4rem, 2vw, 2rem);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            color: var(--text-main);
+        }
+
+        .summary-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(148, 163, 184, 0.04);
+        }
+
+        .summary-tag {
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .summary-count {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .result-grid {
+            display: none;
+            background: var(--bg-panel-strong);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .grid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            background: var(--bg-muted);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .result-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .meta-pill {
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: rgba(96, 165, 250, 0.1);
+            border: 1px solid var(--border-strong);
+            color: var(--primary);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .status-badge.error {
+            background: var(--danger) !important;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.96rem;
+        }
+
+        th,
+        td {
+            text-align: left;
+            vertical-align: top;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            width: 180px;
+            color: var(--text-muted);
+            background: rgba(148, 163, 184, 0.04);
+            font-weight: 700;
+        }
+
+        td {
+            color: var(--text-main);
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .td-text {
+            font-family: inherit;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .python-snippet {
+            display: block;
+            margin-top: 10px;
+            padding: 14px 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+
+        body.light-mode .python-snippet {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        .tree-map {
+            background: rgba(15, 23, 42, 0.35);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.8;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .info-card,
+        .doc-card,
+        .team-card {
+            background: var(--bg-panel-strong);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 18px;
+        }
+
+        .info-card p,
+        .doc-card p,
+        .team-card p,
+        .doc-card li,
+        .team-card li,
+        .info-card li {
+            color: var(--text-muted);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .step-item {
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+            color: white;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .step-item h4 {
+            margin: 0 0 8px;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+
+        .team-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 16px;
+        }
+
+        .team-list li {
+            padding: 18px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--bg-muted);
+        }
+
+        .team-name {
+            display: inline-block;
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .team-role {
+            color: var(--text-muted);
+            font-size: 0.94rem;
+        }
+
+        .tree-root { color: var(--primary); font-weight: 700; }
+        .tree-node { color: var(--keyword); font-weight: 700; }
+
+        h2 {
+            margin: 0 0 12px;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+        }
+
+        h3 {
+            margin-top: 26px;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        p, li, ol, ul {
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        code {
+            color: var(--string);
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        iframe {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-top: 10px;
+            width: 100%;
+            min-height: 360px;
+        }
+
+        @media (max-width: 800px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .header-inner {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .panel-header,
+            .grid-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .layout-shell {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .tabs {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+
+            .tab-btn {
+                flex: 1 1 120px;
+                text-align: center;
+            }
+
+            .tab-content {
+                padding: 18px 14px;
+            }
+
+            tr {
+                display: block;
+                border-bottom: 1px solid var(--border);
+            }
+
+            th, td {
+                display: block;
+                width: 100%;
+                border-bottom: none;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div>🗄️ SQL Command Classifier</div>
-        <button class="theme-btn" onclick="toggleTheme()">☀️/🌙 Toggle Day/Night</button>
-    </div>
-
-    <div class="workspace">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('classifier')">Query Classifier</button>
-            <button class="tab-btn" onclick="switchTab('learn')">Learn</button>
-            <button class="tab-btn" onclick="switchTab('help')">Help</button>
-            <button class="tab-btn" onclick="switchTab('team')">Developed By</button>
-        </div>
-
-        <!-- CLASSIFIER TAB -->
-        <div id="classifier" class="tab-content active">
-            
-            <div id="historyContainer" class="history-container" style="display:none;">
-                <span class="editor-label">Recent Queries (Saved Locally)</span>
-                <div id="historyList"></div>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">DB</div>
+                <div>
+                    <div class="eyebrow">Analytics Console</div>
+                    <h1>SQL Command Classifier</h1>
+                </div>
             </div>
 
-            <span class="editor-label">SQL Query Editor (Live Syntax & Batch Processing)</span>
-            
-            <div class="editor-wrapper">
-                <div id="backdrop" class="editor-backdrop"></div>
-                <textarea id="sqlInput" class="editor-textarea" oninput="highlightSQL()" onscroll="syncScroll()" spellcheck="false">-- Enter multiple commands separated by semicolons (;)
+            <nav class="side-nav">
+                <button class="nav-btn active" onclick="switchTab('classifier', event)">Query Classifier</button>
+                <button class="nav-btn" onclick="switchTab('learn', event)">Learn</button>
+                <button class="nav-btn" onclick="switchTab('help', event)">Help</button>
+                <button class="nav-btn" onclick="switchTab('team', event)">Developed By</button>
+            </nav>
+
+            <div class="sidebar-card">
+                <span class="status-dot"></span>
+                <span>Live parser</span>
+            </div>
+
+            <button class="theme-btn" onclick="toggleTheme()">☀️ / 🌙</button>
+        </aside>
+
+        <main class="main-panel">
+            <header class="topbar">
+                <div>
+                    <div class="eyebrow">Overview</div>
+                    <h2>Database Query Intelligence</h2>
+                </div>
+                <div class="header-actions">
+                    <div class="header-pill"><span class="dot"></span> Live parser</div>
+                    <button class="theme-btn" onclick="toggleTheme()">Theme</button>
+                </div>
+            </header>
+
+            <section class="hero">
+                <div class="hero-copy">
+                    <h3>Understand SQL instantly.</h3>
+                    <p>Classify, filter, and analyze DDL, DML, DQL, DCL, and TCL commands in one streamlined interface designed for fast database learning and reporting.</p>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="value">5</div>
+                        <div class="label">Command groups</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="value">∞</div>
+                        <div class="label">Batch checks</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="value">1</div>
+                        <div class="label">Live parser</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="value">0</div>
+                        <div class="label">Confusion</div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="workspace">
+                <div id="classifier" class="tab-content active">
+                    <div id="historyContainer" class="history-container" style="display:none;">
+                        <span class="editor-label">Recent Queries</span>
+                        <div id="historyList"></div>
+                    </div>
+
+                    <div class="editor-panel">
+                        <div class="panel-header">
+                            <div>
+                                <span class="editor-label">SQL Query Editor</span>
+                                <p>Live syntax highlighting and batch processing.</p>
+                            </div>
+                            <div class="chip">Live syntax</div>
+                        </div>
+
+                        <div class="editor-wrapper">
+                            <div id="backdrop" class="editor-backdrop"></div>
+                            <textarea id="sqlInput" class="editor-textarea" oninput="highlightSQL()" onscroll="syncScroll()" spellcheck="false">-- Enter multiple commands separated by semicolons (;)
 CREATE TABLE users (id INT);
 DROP TABLE users;</textarea>
-            </div>
-            
-            <div class="action-bar">
-                <button class="btn" onclick="analyzeSQL()">▶ Execute Parser</button>
-                <button class="btn btn-export" onclick="downloadReport()">💾 Download Report</button>
-            </div>
+                        </div>
+                    </div>
 
-            <!-- Clickable Buckets -->
-            <div class="buckets-container" id="bucketsContainer" style="display:none;">
-                <div id="bucket-DDL" class="bucket" onclick="filterCategory('DDL')">DDL</div>
-                <div id="bucket-DML" class="bucket" onclick="filterCategory('DML')">DML</div>
-                <div id="bucket-DQL" class="bucket" onclick="filterCategory('DQL')">DQL</div>
-                <div id="bucket-DCL" class="bucket" onclick="filterCategory('DCL')">DCL</div>
-                <div id="bucket-TCL" class="bucket" onclick="filterCategory('TCL')">TCL</div>
-            </div>
+                    <div class="action-bar">
+                        <button class="btn btn-primary" onclick="analyzeSQL()">▶ Execute Parser</button>
+                        <button class="btn btn-export" onclick="downloadReport()">💾 Download Report</button>
+                    </div>
 
-            <div id="resultsContainer"></div>
-            
-        </div>
+                    <div class="buckets-container" id="bucketsContainer" style="display:none;">
+                        <div id="bucket-DDL" class="bucket" data-category="DDL" onclick="filterCategory('DDL')">DDL</div>
+                        <div id="bucket-DML" class="bucket" data-category="DML" onclick="filterCategory('DML')">DML</div>
+                        <div id="bucket-DQL" class="bucket" data-category="DQL" onclick="filterCategory('DQL')">DQL</div>
+                        <div id="bucket-DCL" class="bucket" data-category="DCL" onclick="filterCategory('DCL')">DCL</div>
+                        <div id="bucket-TCL" class="bucket" data-category="TCL" onclick="filterCategory('TCL')">TCL</div>
+                    </div>
 
-        <!-- LEARN TAB -->
-        <div id="learn" class="tab-content">
-            <h2>Module 1 – SQL Fundamentals Concept</h2>
-            <p>SQL commands are strictly grouped into five major categories based on their functional objectives within a Relational Database Management System (RDBMS):</p>
-            
-            <div class="tree-map">
+                    <div id="resultsContainer"></div>
+                </div>
+
+                <div id="learn" class="tab-content">
+                    <div class="info-card">
+                        <h2>SQL Fundamentals</h2>
+                        <p>SQL commands are grouped into five core categories based on their purpose within a relational database system.</p>
+
+                        <div class="tree-map">
 <span class="tree-root">[STANDARD SQL ENGINE]</span>
  ├── <span class="tree-node">DDL</span> (Data Definition)  : Modifies schema structure (CREATE, ALTER, DROP, TRUNCATE)
  ├── <span class="tree-node">DML</span> (Data Manipulation) : Manages row-level data (INSERT, UPDATE, DELETE)
  ├── <span class="tree-node">DQL</span> (Data Query)        : Retrieves target data (SELECT)
  ├── <span class="tree-node">DCL</span> (Data Control)      : Manages access security (GRANT, REVOKE)
  └── <span class="tree-node">TCL</span> (Transaction Control): Manages session states (COMMIT, ROLLBACK)
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3>Educational Video Overview</h3>
+                        <iframe src="https://www.youtube.com/embed/HXV3zeQKqGY" title="SQL Tutorial Overview" allowfullscreen></iframe>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3>References & Acknowledgements</h3>
+                        <ul>
+                            <li><strong>Book:</strong> <em>Database System Concepts (7th Edition)</em> by Abraham Silberschatz.</li>
+                            <li><strong>Website:</strong> W3Schools SQL Tutorial & Documentation.</li>
+                            <li><strong>Video:</strong> Programming with Mosh - SQL Tutorial for Beginners.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="help" class="tab-content">
+                    <div class="info-card">
+                        <h2>User Manual</h2>
+                        <p>Welcome to the SQL Command Classifier. This application uses a custom Node.js backend to evaluate SQL statements and classify them into standard DBMS command categories.</p>
+
+                        <div class="steps">
+                            <div class="step-item">
+                                <div class="step-number">1</div>
+                                <h4>Open the editor</h4>
+                                <p>Navigate to the Query Classifier tab and paste or type your SQL command.</p>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-number">2</div>
+                                <h4>Run the parser</h4>
+                                <p>Use the Execute Parser button to classify each statement in the batch.</p>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-number">3</div>
+                                <h4>Review results</h4>
+                                <p>Inspect the cards and filter them by DDL, DML, DQL, DCL, and TCL categories.</p>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-number">4</div>
+                                <h4>Export report</h4>
+                                <p>Download the report for documentation, evaluation, or project submission.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="team" class="tab-content">
+                    <div class="team-card">
+                        <h2>Developed By</h2>
+                        <p><strong>Project:</strong> SQL Command Classifier</p>
+                        <p><strong>Institution:</strong> VIT Chennai</p>
+                        <p><strong>Guided By:</strong> Dr. Swaminathan A, Professor</p>
+
+                        <div style="height: 1px; background: var(--border); margin: 24px 0;"></div>
+
+                        <h3 style="margin-top: 0;">Team Members</h3>
+                        <ul class="team-list">
+                            <li>
+                                <span class="team-name">Sree Vishnu</span><br>
+                                <span class="team-role">Reg No: 25BCE5223 · Backend API & Integration</span>
+                            </li>
+                            <li>
+                                <span class="team-name">Tharun.G</span><br>
+                                <span class="team-role">Reg No: 25BCE5231 · Frontend Interface</span>
+                            </li>
+                            <li>
+                                <span class="team-name">Sriram</span><br>
+                                <span class="team-role">Reg No: 25BCE1444 · Documentation and Testing</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-
-            <h3>Educational Video Overview</h3>
-            <iframe width="100%" height="400" src="https://www.youtube.com/embed/HXV3zeQKqGY" frameborder="0" allowfullscreen style="border: 1px solid var(--border); border-radius: 3px;"></iframe>
-
-            <h3>References & Acknowledgements</h3>
-            <ul style="color: var(--text-muted);">
-                <li><strong>Book:</strong> <em>Database System Concepts (7th Edition)</em> by Abraham Silberschatz.</li>
-                <li><strong>Website:</strong> W3Schools SQL Tutorial & Documentation.</li>
-                <li><strong>Video:</strong> Programming with Mosh - SQL Tutorial for Beginners.</li>
-            </ul>
-        </div>
-
-        <!-- HELP TAB -->
-        <div id="help" class="tab-content">
-            <h2>User Manual / Help</h2>
-            <p>Welcome to the SQL Command Classifier. This application utilizes a custom Node.js backend parsing engine to evaluate raw SQL strings and categorize them into standard RDBMS structures.</p>
-            
-            <h3>How to operate the system:</h3>
-            <ol style="color: var(--text-muted); margin-bottom: 25px;">
-                <li><strong>Navigate to Input:</strong> Open the "Query Classifier" tab.</li>
-                <li><strong>Provide Input:</strong> Type or paste any valid SQL command into the text box. <em>(Note: You can batch-process multiple commands by separating them with a semicolon <code>;</code>)</em>.</li>
-                <li><strong>Process Command:</strong> Click the blue <strong>Execute Parser</strong> button.</li>
-                <li><strong>Interpret Output:</strong> Review the Output Console below. It will dynamically generate a classification card for every valid command detected.</li>
-                <li><strong>Filter Results:</strong> Click on any of the category buckets (DDL, DML, etc.) to filter the visible results. Click it again to show all.</li>
-                <li><strong>Generate Log:</strong> Click the <strong>Download Report</strong> button to save a <code>.txt</code> execution log.</li>
-            </ol>
-        </div>
-
-        <!-- DEVELOPED BY TAB -->
-        <div id="team" class="tab-content">
-            <h2>Developed By</h2>
-            <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 3px; border: 1px solid var(--border); color: var(--text-main);">
-                <p style="margin: 0 0 10px 0;"><strong>Project:</strong> SQL Command Classifier</p>
-                <p style="margin: 0 0 10px 0;"><strong>Institution:</strong> VIT Chennai</p>
-                <p style="margin: 0 0 20px 0;"><strong>Guided By:</strong> Dr. Swaminathan A , Professor</p>
-                
-                <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
-                
-                <h3 style="margin-top: 0; color: var(--primary);">Team Members</h3>
-                <ul style="list-style-type: none; padding: 0; margin: 0;">
-                    <li style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed var(--border);">
-                        <strong style="font-size: 1.1rem; color: var(--keyword);">Sree Vishnu</strong> (Reg No: 25BCE5223)<br>
-                        <span style="color: var(--text-muted);">Role: Backend API & Integration</span>
-                    </li>
-                    <li style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed var(--border);">
-                        <strong style="font-size: 1.1rem; color: var(--keyword);">Tharun.G</strong> (Reg No: 25BCE5231)<br>
-                        <span style="color: var(--text-muted);">Role: Frontend Interface</span>
-                    </li>
-                    <li>
-                        <strong style="font-size: 1.1rem; color: var(--keyword);">Sriram</strong> (Reg No: 25BCE1444)<br>
-                        <span style="color: var(--text-muted);">Role: Documentation and testing</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
+        </main>
     </div>
 
     <!-- JS Logic -->
     <script>
         window.batchResults = [];
-        let currentFilter = null; // Tracks active filter
+        let currentFilter = null;
 
         window.onload = function() {
             highlightSQL();
             loadHistory();
         };
 
-        function switchTab(tabId) {
+        function switchTab(tabId, event) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
         }
 
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
-            highlightSQL(); 
+            highlightSQL();
         }
 
-        // --- FILTERING LOGIC ---
         function filterCategory(cat) {
-            const isAlreadyFiltered = document.getElementById('bucket-' + cat).classList.contains('focus-filter');
-            
-            // Reset all visually
+            const bucket = document.getElementById('bucket-' + cat);
+            const isAlreadyFiltered = bucket && bucket.classList.contains('focus-filter');
+
             document.querySelectorAll('.bucket').forEach(b => {
                 b.classList.remove('focus-filter');
-                b.style.opacity = isAlreadyFiltered ? '' : '0.2'; 
+                b.style.opacity = '0.55';
             });
 
-            // If we are applying a new filter (not removing it)
             if (!isAlreadyFiltered) {
-                document.getElementById('bucket-' + cat).classList.add('focus-filter');
-                document.getElementById('bucket-' + cat).style.opacity = '1';
+                currentFilter = cat;
+                bucket.classList.add('focus-filter');
+                bucket.style.opacity = '1';
+            } else {
+                currentFilter = null;
             }
 
-            // Hide/show the result cards
             document.querySelectorAll('.result-grid').forEach(grid => {
-                if (isAlreadyFiltered || grid.getAttribute('data-category') === cat) {
-                    grid.style.display = 'block';
-                } else {
-                    grid.style.display = 'none';
-                }
+                const matches = !currentFilter || grid.getAttribute('data-category') === currentFilter;
+                grid.style.display = matches ? 'block' : 'none';
             });
         }
 
@@ -292,7 +1202,7 @@ DROP TABLE users;</textarea>
             const container = document.getElementById('historyContainer');
             if (history.length > 0) {
                 container.style.display = 'block';
-                list.innerHTML = history.reverse().slice(0, 5).map(q => 
+                list.innerHTML = history.slice().reverse().slice(0, 5).map(q => 
                     `<span class="history-item" onclick="loadQuery(this.innerText)">${q.replace(/</g, '&lt;')}</span>`
                 ).join('');
             }
@@ -313,19 +1223,19 @@ DROP TABLE users;</textarea>
             }
             loadHistory();
         }
-        
+
         function highlightSQL() {
             const text = document.getElementById('sqlInput').value;
             let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            
+
             let highlighted = escaped.replace(/(--.*)|('.*?'|".*?")|\b(CREATE|ALTER|DROP|TRUNCATE|INSERT|UPDATE|DELETE|SELECT|GRANT|REVOKE|COMMIT|ROLLBACK|SAVEPOINT|TABLE|FROM|WHERE|INTO|VALUES|SET|AND|OR|NOT|NULL|PRIMARY|KEY)\b|\b(INT|VARCHAR|CHAR|DATE|BOOLEAN|FLOAT|DOUBLE)\b/gi, function(match, comment, str, keyword, type) {
                 if (comment) return '<span class="hl-comment">' + comment + '</span>';
-                if (str)     return '<span class="hl-string">' + str + '</span>';
+                if (str) return '<span class="hl-string">' + str + '</span>';
                 if (keyword) return '<span class="hl-keyword">' + keyword + '</span>';
-                if (type)    return '<span class="hl-type">' + type + '</span>';
+                if (type) return '<span class="hl-type">' + type + '</span>';
                 return match;
             });
-            
+
             if (text.length > 0 && text[text.length - 1] === '\n') {
                 highlighted += ' ';
             }
@@ -333,7 +1243,10 @@ DROP TABLE users;</textarea>
         }
 
         function syncScroll() {
-            document.getElementById('backdrop').scrollTop = document.getElementById('sqlInput').scrollTop;
+            const sqlInput = document.getElementById('sqlInput');
+            const backdrop = document.getElementById('backdrop');
+            backdrop.scrollTop = sqlInput.scrollTop;
+            backdrop.scrollLeft = sqlInput.scrollLeft;
         }
 
         async function analyzeSQL() {
@@ -345,15 +1258,17 @@ DROP TABLE users;</textarea>
             const container = document.getElementById('resultsContainer');
             container.innerHTML = '';
             window.batchResults = [];
-            currentFilter = null; // reset filters on new run
+            currentFilter = null;
 
             document.querySelectorAll('.bucket').forEach(b => {
-                b.className = 'bucket';
-                b.style.opacity = '0.4'; // reset to dim state
+                b.classList.remove('focus-filter');
+                b.style.opacity = '0.55';
             });
             document.getElementById('bucketsContainer').style.display = 'flex';
 
             const commands = sqlText.split(';').map(cmd => cmd.trim()).filter(cmd => cmd.length > 0);
+            const categoryStats = { DDL: 0, DML: 0, DQL: 0, DCL: 0, TCL: 0, Error: 0 };
+            const resultsMarkup = [];
 
             for (let i = 0; i < commands.length; i++) {
                 try {
@@ -373,21 +1288,23 @@ DROP TABLE users;</textarea>
                         const bucket = document.getElementById('bucket-' + cat);
                         if (bucket) {
                             setTimeout(() => {
-                                bucket.classList.add('active-' + cat.toLowerCase());
+                                bucket.classList.add('focus-filter');
                                 bucket.style.opacity = '1';
-                            }, i * 200); 
+                            }, i * 200);
                         }
-                        
-                        if (cat === 'DDL') badgeColor = 'background-color: #3b82f6;';      
-                        else if (cat === 'DML') badgeColor = 'background-color: #f97316;'; 
-                        else if (cat === 'DQL') badgeColor = 'background-color: #10b981;'; 
-                        else if (cat === 'DCL') badgeColor = 'background-color: #a855f7;'; 
-                        else if (cat === 'TCL') badgeColor = 'background-color: #ef4444;'; 
+
+                        if (cat === 'DDL') badgeColor = 'background: linear-gradient(135deg, #3b82f6, #2563eb);';
+                        else if (cat === 'DML') badgeColor = 'background: linear-gradient(135deg, #f59e0b, #f97316);';
+                        else if (cat === 'DQL') badgeColor = 'background: linear-gradient(135deg, #10b981, #059669);';
+                        else if (cat === 'DCL') badgeColor = 'background: linear-gradient(135deg, #8b5cf6, #7c3aed);';
+                        else if (cat === 'TCL') badgeColor = 'background: linear-gradient(135deg, #ef4444, #dc2626);';
+                        categoryStats[cat] = (categoryStats[cat] || 0) + 1;
                     } else {
-                        badgeColor = 'background-color: var(--danger);';
+                        badgeColor = 'background: linear-gradient(135deg, #ef4444, #dc2626);';
+                        categoryStats.Error += 1;
                     }
                     const badgeClass = data.valid ? 'status-badge' : 'status-badge error';
-                    
+
                     const safeQuery = commands[i].replace(/"/g, '\\"');
                     const pythonCode = `<div class="python-snippet">
 <span class="hl-keyword">import</span> sqlite3
@@ -397,12 +1314,14 @@ cursor.execute(<span class="hl-string">"""${safeQuery}"""</span>)
 conn.commit()
 conn.close()</div>`;
 
-                    // ADDED data-category attribute for filtering
-                    const resultHTML = `
+                    resultsMarkup.push(`
                         <div class="result-grid" data-category="${cat}" style="display: block;">
                             <div class="grid-header">
-                                <span>Command ${i + 1}: <code style="text-transform: none; background: rgba(0,0,0,0.2); padding: 2px 6px;">${commands[i]}</code></span>
-                                <span class="${badgeClass}" style="${badgeColor}">${data.category} DETECTED</span>
+                                <div class="result-meta">
+                                    <span class="meta-pill">Command ${i + 1}</span>
+                                    <code style="text-transform: none; background: rgba(148, 163, 184, 0.12); padding: 2px 6px; border-radius: 6px;">${commands[i]}</code>
+                                </div>
+                                <span class="${badgeClass}" style="${badgeColor}">${data.valid ? data.category : 'ERROR'} DETECTED</span>
                             </div>
                             <table>
                                 <tr>
@@ -430,22 +1349,68 @@ conn.close()</div>`;
                                 </tr>
                             </table>
                         </div>
-                    `;
-                    container.innerHTML += resultHTML;
+                    `);
 
                 } catch (error) {
                     console.error('Error:', error);
                     alert(`Connection refused on Command ${i + 1}. Ensure the Node.js backend is running on port 3000.`);
-                    break; 
+                    break;
                 }
             }
+
+            const totalValid = window.batchResults.filter(item => item.valid).length;
+            const totalInvalid = window.batchResults.length - totalValid;
+            const totalCommands = window.batchResults.length;
+            const topCategory = Object.entries(categoryStats).filter(([key]) => key !== 'Error').sort((a, b) => b[1] - a[1])[0];
+
+            const summaryMarkup = `
+                <div class="results-shell">
+                    <div class="results-overview">
+                        <div class="results-header">
+                            <h3>Execution Summary</h3>
+                            <span class="meta-pill">${totalCommands} statements</span>
+                        </div>
+                        <div class="kpi-grid">
+                            <div class="kpi-card">
+                                <div class="kpi-label">Valid</div>
+                                <div class="kpi-value">${totalValid}</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Invalid</div>
+                                <div class="kpi-value">${totalInvalid}</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Top class</div>
+                                <div class="kpi-value">${topCategory ? topCategory[0] : '—'}</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Coverage</div>
+                                <div class="kpi-value">${totalCommands ? Math.round((totalValid / totalCommands) * 100) : 0}%</div>
+                            </div>
+                        </div>
+                        <div class="summary-list">
+                            ${Object.entries(categoryStats)
+                                .filter(([key]) => key !== 'Error')
+                                .map(([key, value]) => `
+                                    <div class="summary-item">
+                                        <span class="summary-tag">${key}</span>
+                                        <span class="summary-count">${value}</span>
+                                    </div>
+                                `).join('')}
+                        </div>
+                    </div>
+                    ${resultsMarkup.join('')}
+                </div>
+            `;
+
+            container.innerHTML = summaryMarkup;
         }
 
         function downloadReport() {
             if (window.batchResults.length === 0) return alert('Run the parser before downloading the report.');
-            
+
             let reportContent = `DBMS BATCH EXECUTION LOG\n=========================================\n`;
-            
+
             window.batchResults.forEach((res, index) => {
                 reportContent += `\n--- [COMMAND ${index + 1}] ---\n`;
                 reportContent += `Input:    ${res.input}\n`;
