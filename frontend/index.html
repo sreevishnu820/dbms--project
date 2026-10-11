@@ -1,468 +1,2291 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQL Command Classifier | DBMS Console</title>
-    <style>
-        /* Enterprise DBMS Theme */
-        :root { 
-            --bg-body: #1e1e1e; 
-            --bg-panel: #252526; 
-            --bg-tab-active: #1e1e1e;
-            --bg-tab-inactive: #2d2d2d;
-            --border: #3e3e42;
-            --text-main: #d4d4d4; 
-            --text-muted: #858585;
-            --keyword: #569cd6;
-            --string: #ce9178;
-            --primary: #007acc; 
-            --primary-hover: #0098ff;
-            --success: #4caf50;
-            --danger: #f44336;
-        }
-        
-        body.light-mode { 
-            --bg-body: #f3f3f3; 
-            --bg-panel: #ffffff; 
-            --bg-tab-active: #ffffff;
-            --bg-tab-inactive: #e5e5e5;
-            --border: #cccccc;
-            --text-main: #333333; 
-            --text-muted: #666666;
-            --keyword: #0000ff;
-            --string: #a31515;
-            --primary: #007acc; 
-        }
-        
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 0; transition: all 0.2s; height: 100vh; display: flex; flex-direction: column; }
-        
-        .header { background-color: var(--primary); color: white; padding: 10px 20px; font-size: 1.2rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .theme-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 12px; border-radius: 3px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
-        .theme-btn:hover { background: rgba(255,255,255,0.3); }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SQL Command Classifier</title>
 
-        .workspace { padding: 20px; max-width: 1000px; margin: 0 auto; width: 100%; box-sizing: border-box; }
-        
-        .tabs { display: flex; border-bottom: 1px solid var(--border); background-color: var(--bg-tab-inactive); padding-top: 8px; padding-left: 8px; }
-        .tab-btn { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; background: var(--bg-tab-inactive); font-size: 14px; color: var(--text-muted); transition: 0.2s; margin-right: 2px; border-top-left-radius: 4px; border-top-right-radius: 4px; font-weight: 600; }
-        .tab-btn.active { background: var(--bg-tab-active); color: var(--text-main); border-color: var(--border); border-bottom-color: var(--bg-tab-active); position: relative; top: 1px; }
-        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.05); }
-        
-        .tab-content { display: none; background: var(--bg-panel); padding: 25px; border: 1px solid var(--border); border-top: none; min-height: 400px; }
-        .tab-content.active { display: block; }
-        
-        .editor-label { font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; display: block; letter-spacing: 1px; }
-        
-        /* SYNTAX HIGHLIGHTING EDITOR */
-        .editor-wrapper { position: relative; width: 100%; height: 130px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 3px; background-color: #1e1e1e; }
-        .editor-backdrop, .editor-textarea { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; font-size: 15px; font-family: 'Consolas', 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; line-height: 1.5; margin: 0; border: none; }
-        .editor-backdrop { color: #d4d4d4; z-index: 1; overflow-y: auto; overflow-x: hidden; pointer-events: none; }
-        .editor-textarea { background: transparent; color: transparent; caret-color: #d4d4d4; z-index: 2; outline: none; resize: none; overflow-y: auto; }
-        .editor-textarea:focus { box-shadow: inset 0 0 0 1px var(--primary); }
-        
-        .hl-keyword { color: #569cd6; font-weight: bold; }
-        .hl-string { color: #ce9178; }
-        .hl-type { color: #4ec9b0; }
-        .hl-comment { color: #6a9955; font-style: italic; }
-        
-        body.light-mode .editor-wrapper { background-color: #ffffff; }
-        body.light-mode .editor-textarea { caret-color: #333333; }
-        body.light-mode .hl-keyword { color: #0000ff; }
-        body.light-mode .hl-string { color: #a31515; }
-        body.light-mode .hl-type { color: #2b91af; }
-        body.light-mode .hl-comment { color: #008000; }
-        
-        .action-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px dashed var(--border); padding-bottom: 20px; }
-        .btn { padding: 8px 16px; background-color: var(--primary); color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
-        .btn:hover { background-color: var(--primary-hover); }
-        .btn-export { background-color: var(--bg-tab-inactive); color: var(--text-main); border: 1px solid var(--border); }
-        .btn-export:hover { background-color: var(--border); }
-        
-        /* History Panel */
-        .history-container { margin-bottom: 20px; border: 1px solid var(--border); padding: 15px; border-radius: 3px; background: var(--bg-body); }
-        .history-item { cursor: pointer; color: var(--primary); font-family: 'Consolas', monospace; font-size: 13px; margin-bottom: 8px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .history-item:hover { text-decoration: underline; color: var(--primary-hover); }
+<style>
+:root {
+  --bg: #edf6ff;
+  --surface: #ffffff;
+  --surface-soft: #f8f5ef;
+  --text: #111827;
+  --muted: #6d6f75;
+  --line: #d4dce5;
+  --blue: #155bd7;
+  --blue-dark: #0b1422;
+  --blue-soft: #dceafe;
+  --orange: #f47a61;
+  --green: #4c967d;
+  --shadow: 0 18px 38px rgba(55, 88, 130, 0.1);
+}
 
-        /* Animation Buckets */
-        .buckets-container { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .bucket { padding: 12px 20px; border-radius: 5px; border: 2px solid var(--border); background: var(--bg-tab-inactive); color: var(--text-muted); font-weight: bold; transition: all 0.4s ease; text-align: center; flex: 1; opacity: 0.4; transform: scale(0.95); cursor: pointer; }
-        .bucket:hover { filter: brightness(1.2); }
-        .bucket.active-ddl { background: #3b82f6; color: white; border-color: #3b82f6; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
-        .bucket.active-dml { background: #f97316; color: white; border-color: #f97316; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(249, 115, 22, 0.5); }
-        .bucket.active-dql { background: #10b981; color: white; border-color: #10b981; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
-        .bucket.active-dcl { background: #a855f7; color: white; border-color: #a855f7; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(168, 85, 247, 0.5); }
-        .bucket.active-tcl { background: #ef4444; color: white; border-color: #ef4444; opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
-        
-        .result-grid { display: none; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
-        .grid-header { background-color: var(--bg-tab-inactive); padding: 8px 15px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .status-badge { color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; text-shadow: 0 1px 1px rgba(0,0,0,0.2); }
-        .status-badge.error { background-color: var(--danger) !important; }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--border); }
-        th { width: 150px; color: var(--text-muted); font-weight: normal; border-right: 1px solid var(--border); background: rgba(0,0,0,0.1); vertical-align: top; }
-        td { font-family: 'Consolas', monospace; color: var(--keyword); }
-        .td-text { font-family: inherit; color: var(--text-main); }
-        
-        /* Python Generator Code Block */
-        .python-snippet { background: #1e1e1e; color: #d4d4d4; padding: 15px; font-family: 'Consolas', monospace; font-size: 13px; border-radius: 3px; margin-top: 5px; border: 1px solid #333; overflow-x: auto; }
-        body.light-mode .python-snippet { background: #f3f3f3; color: #333; border: 1px solid #ccc; }
-        
-        h2 { margin-top: 0; color: var(--primary); font-weight: 400; font-size: 1.6rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        h3 { color: var(--primary); margin-top: 25px; font-weight: 500; }
-        code { color: var(--string); font-family: 'Consolas', monospace; }
-        
-        .tree-map { font-family: 'Consolas', monospace; background: var(--bg-body); padding: 20px; border-radius: 3px; border: 1px solid var(--border); color: var(--text-main); font-size: 15px; white-space: pre; overflow-x: auto; margin-bottom: 20px; }
-        .tree-root { color: var(--primary); font-weight: bold; }
-        .tree-node { color: var(--keyword); font-weight: bold; }
-        ul { line-height: 1.6; }
-    </style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+body.dark {
+  --bg: #101722;
+  --surface: #172332;
+  --surface-soft: #202b38;
+  --text: #f4f7fb;
+  --muted: #aeb8c5;
+  --line: #344354;
+  --blue-soft: #1e3a5f;
+  --blue-dark: #07111e;
+  --shadow: 0 18px 38px rgba(0, 0, 0, 0.4);
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app {
+  width: min(1520px, calc(100% - 64px));
+  margin: 32px auto 72px;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+}
+
+
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand-mark {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #1760d7;
+  color: white;
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.brand-eyebrow,
+.eyebrow,
+.section-title {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.brand-eyebrow {
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+
+.brand-name {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.nav {
+  display: grid;
+  gap: 7px;
+  margin-top: 20px;
+}
+
+.nav-item {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  border-radius: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: var(--blue-soft);
+  color: #2459a4;
+  font-weight: 700;
+}
+
+.nav-icon {
+  width: 20px;
+  text-align: center;
+  font-size: 17px;
+}
+
+/* Updated Topbar (aligns title and button vertically) */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 25px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Top-Right Theme Toggle Button */
+.topbar-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s ease;
+}
+
+.topbar-theme-toggle:hover {
+  background: var(--surface-soft);
+  border-color: var(--blue);
+  transform: translateY(-1px);
+}
+
+/* Toggle Text & Icon States */
+.mode-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.state-light {
+  display: inline-flex;
+}
+
+.state-dark {
+  display: none;
+}
+
+/* In Dark Mode: Hide Light state, show Dark state */
+body.dark .state-light {
+  display: none;
+}
+
+body.dark .state-dark {
+  display: inline-flex;
+}
+
+.topbar h1 {
+  margin: 8px 0 0;
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 800;
+}
+
+.eyebrow {
+  color: var(--muted);
+}
+
+/* Views */
+.tab-view {
+  display: none;
+}
+
+.tab-view.active {
+  display: block;
+  animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  min-height: 200px;
+  margin-top: 32px;
+  padding: 36px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--blue);
+  color: white;
+  box-shadow: 0 22px 44px rgba(21, 91, 215, 0.2);
+}
+
+.hero h2 {
+  margin: 12px 0 16px;
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 700;
+}
+
+.hero p {
+  max-width: 750px;
+  margin: 0;
+  color: #c7dafa;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Cards */
+.card {
+  margin-top: 28px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.section-description {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Editor */
+.editor {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  min-height: 250px;
+  border: 3px solid #dae2eb;
+  border-radius: 9px;
+  background: var(--blue-dark);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.editor:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px var(--blue-soft);
+}
+
+.line-numbers {
+  padding: 16px 10px;
+  border-right: 1px solid #344354;
+  color: #718096;
+  font-family: monospace;
+  font-size: 13px;
+  text-align: right;
+  line-height: 1.6;
+}
+
+textarea {
+  width: 100%;
+  min-height: 250px;
+  padding: 16px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #b7f0df;
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  min-height: 42px;
+  padding: 0 18px;
+  font-weight: 650;
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  border-radius: 6px;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.download-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.btn:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background: #111111;
+  color: #ffffff;
+  border: 1px solid #111111;
+}
+
+.btn-primary:hover {
+  background: #2a2a2a;
+  border-color: #2a2a2a;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #c7c7c7;
+}
+
+.btn-secondary:hover {
+  background: #f4f4f4;
+  border-color: #111111;
+}
+
+.btn-download {
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #c7c7c7;
+}
+
+.btn-download:hover {
+  background: #f4f4f4;
+  border-color: #111111;
+}
+
+.btn-download:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+body.dark .btn-primary {
+  background: #ffffff;
+  color: #111111;
+  border-color: #ffffff;
+}
+
+body.dark .btn-primary:hover {
+  background: #e9e9e9;
+  border-color: #e9e9e9;
+}
+
+body.dark .btn-secondary,
+body.dark .btn-download {
+  background: #171717;
+  color: #f5f5f5;
+  border-color: #555555;
+}
+
+body.dark .btn-secondary:hover,
+body.dark .btn-download:hover {
+  background: #222222;
+  border-color: #f5f5f5;
+}
+
+/* Results */
+.result-list {
+  display: grid;
+  gap: 10px;
+}
+
+.result-row {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.result-row.error-row {
+  border-color: #e23e59;
+  background: rgba(226, 62, 89, 0.06);
+}
+
+.result-tag {
+  padding: 6px;
+  border-radius: 4px;
+  text-align: center;
+  font-family: Inter, sans-serif;
+  font-weight: 800;
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.legend-item {
+  padding: 14px 10px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 14px;
+  background: var(--surface-soft);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Dynamic Active Tag Colors */
+.tag-ddl {
+  background: #dceafe;
+  color: #1e529a;
+}
+
+.tag-dml {
+  background: #fff0d9;
+  color: #a46110;
+}
+
+.tag-dql {
+  background: #d9f2ed;
+  color: #1a715b;
+}
+
+.tag-dcl {
+  background: #eee2ff;
+  color: #662caf;
+}
+
+.tag-tcl {
+  background: #ffe1e5;
+  color: #a7213b;
+}
+
+.tag-error {
+  background: #ffe1e5;
+  color: #a7213b;
+  border: 1px solid #e23e59;
+}
+
+/* Dynamic Glow States on Execute */
+.legend-ddl.active-glow {
+  background: #dceafe;
+  border-color: #4b8df8;
+  color: #1e529a;
+  box-shadow: 0 0 18px rgba(75, 141, 248, 0.4);
+  transform: translateY(-4px) scale(1.05);
+}
+
+.legend-dml.active-glow {
+  background: #fff0d9;
+  border-color: #e59325;
+  color: #a46110;
+  box-shadow: 0 0 18px rgba(229, 147, 37, 0.4);
+  transform: translateY(-4px) scale(1.05);
+}
+
+.legend-dql.active-glow {
+  background: #d9f2ed;
+  border-color: #2db693;
+  color: #1a715b;
+  box-shadow: 0 0 18px rgba(45, 182, 147, 0.4);
+  transform: translateY(-4px) scale(1.05);
+}
+
+.legend-dcl.active-glow {
+  background: #eee2ff;
+  border-color: #9048f0;
+  color: #662caf;
+  box-shadow: 0 0 18px rgba(144, 72, 240, 0.4);
+  transform: translateY(-4px) scale(1.05);
+}
+
+.legend-tcl.active-glow {
+  background: #ffe1e5;
+  border-color: #e23e59;
+  color: #a7213b;
+  box-shadow: 0 0 18px rgba(226, 62, 89, 0.4);
+  transform: translateY(-4px) scale(1.05);
+}
+
+/* SQL Mind Map */
+.mindmap-container {
+  overflow-x: auto;
+  padding: 40px 20px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 30px;
+}
+
+.mindmap {
+  display: flex;
+  align-items: center;
+  min-width: 900px;
+}
+
+.mindmap ul {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  list-style: none;
+  padding-left: 50px;
+  margin: 0;
+  position: relative;
+}
+
+/* Root styling */
+.mindmap > ul {
+  padding-left: 0;
+  flex-direction: row;
+}
+
+.mindmap li {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Connecting Lines */
+.mindmap li::before,
+.mindmap li::after {
+  content: '';
+  position: absolute;
+  background: var(--muted);
+  opacity: 0.4;
+}
+
+.mindmap li::before {
+  left: -50px;
+  top: 50%;
+  width: 50px;
+  height: 2px;
+  transform: translateY(-50%);
+}
+
+.mindmap li::after {
+  left: -50px;
+  width: 2px;
+  top: 0;
+  bottom: 0;
+}
+
+/* Fix lines on edges */
+.mindmap > ul > li::before,
+.mindmap > ul > li::after {
+  display: none;
+}
+
+.mindmap li:first-child::after {
+  top: 50%;
+}
+
+.mindmap li:last-child::after {
+  bottom: 50%;
+}
+
+.mindmap li:only-child::after {
+  display: none;
+}
+
+.mm-node {
+  border: 1px solid var(--blue);
+  background: var(--surface);
+  padding: 12px 18px;
+  border-radius: 8px;
+  z-index: 2;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  min-width: 140px;
+  transition: transform 0.2s;
+}
+
+.mm-node:hover {
+  transform: scale(1.03);
+  border-color: var(--orange);
+}
+
+.mm-node h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.mm-node p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.mm-leaf h4 {
+  color: var(--text);
+  font-family: monospace;
+  font-size: 13px;
+  background: var(--blue-soft);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* Learn Resources */
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.resource-card {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  text-decoration: none;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.resource-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--blue);
+}
+
+.resource-type {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+
+.resource-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.resource-desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  flex-grow: 1;
+}
+
+.resource-link {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Team Section */
+:root {
+  --dev-primary: #155bd7;
+  --dev-secondary: #0b347d;
+  --dev-soft: #dceafe;
+  --dev-border: #a8c5f5;
+}
+
+.guide-banner {
+  background: linear-gradient(
+    135deg,
+    var(--dev-primary),
+    var(--dev-secondary)
+  );
+  color: white;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 12px 28px rgba(21, 91, 215, 0.22);
+}
+
+.guide-badge {
+  background: rgba(255, 255, 255, 0.2);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.team-card {
+  padding: 24px 20px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-soft);
+  text-align: center;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--dev-border);
+  box-shadow: 0 10px 24px rgba(21, 91, 215, 0.12);
+}
+
+.team-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--dev-primary),
+    var(--dev-secondary)
+  );
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 auto 12px;
+}
+
+.team-name {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 4px;
+}
+
+.team-reg {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: monospace;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.team-role {
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--dev-soft);
+  color: var(--dev-primary);
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+body.dark {
+  --dev-primary: #5b8def;
+  --dev-secondary: #174ea6;
+  --dev-soft: #1e3a5f;
+  --dev-border: #3e659f;
+}
+
+body.dark .guide-banner {
+  box-shadow: 0 12px 28px rgba(91, 141, 239, 0.16);
+}
+
+body.dark .team-card:hover {
+  box-shadow: 0 10px 24px rgba(91, 141, 239, 0.12);
+}
+
+@media (max-width: 900px) {
+  .app {
+    width: calc(100% - 32px);
+    grid-template-columns: 1fr;
+  }
+
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .legend {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+</style>
 </head>
+
 <body>
 
-    <div class="header">
-        <div>🗄️ SQL Command Classifier</div>
-        <button class="theme-btn" onclick="toggleTheme()">☀️/🌙 Toggle Day/Night</button>
+<div class="app">
+
+  <aside class="sidebar">
+
+    <div class="brand">
+      <div class="brand-mark">DB</div>
+
+      <div>
+        <div class="brand-eyebrow">Analytics Console</div>
+        <div class="brand-name">SQL Command Classifier</div>
+      </div>
     </div>
 
-    <div class="workspace">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('classifier')">Query Classifier</button>
-            <button class="tab-btn" onclick="switchTab('learn')">Learn</button>
-            <button class="tab-btn" onclick="switchTab('help')">Help</button>
-            <button class="tab-btn" onclick="switchTab('team')">Developed By</button>
-        </div>
+    <nav class="nav">
+      <button
+        class="nav-item active"
+        onclick="switchTab('classifier')"
+      >
+        <span class="nav-icon">▣</span>
+        Query Workspace
+      </button>
 
-        <!-- CLASSIFIER TAB -->
-        <div id="classifier" class="tab-content active">
-            
-            <div id="historyContainer" class="history-container" style="display:none;">
-                <span class="editor-label">Recent Queries (Saved Locally)</span>
-                <div id="historyList"></div>
-            </div>
+      <button
+        class="nav-item"
+        onclick="switchTab('learn')"
+      >
+        <span class="nav-icon">📖</span>
+        Learn & Resources
+      </button>
 
-            <span class="editor-label">SQL Query Editor (Live Syntax & Batch Processing)</span>
-            
-            <div class="editor-wrapper">
-                <div id="backdrop" class="editor-backdrop"></div>
-                <textarea id="sqlInput" class="editor-textarea" oninput="highlightSQL()" onscroll="syncScroll()" spellcheck="false">-- Enter multiple commands separated by semicolons (;)
-CREATE TABLE users (id INT);
-DROP TABLE users;</textarea>
-            </div>
-            
-            <div class="action-bar">
-                <button class="btn" onclick="analyzeSQL()">▶ Execute Parser</button>
-                <button class="btn btn-export" onclick="downloadReport()">💾 Download Report</button>
-            </div>
+      <button
+        class="nav-item"
+        onclick="switchTab('help')"
+      >
+        <span class="nav-icon">❔</span>
+        Help
+      </button>
 
-            <!-- Clickable Buckets -->
-            <div class="buckets-container" id="bucketsContainer" style="display:none;">
-                <div id="bucket-DDL" class="bucket" onclick="filterCategory('DDL')">DDL</div>
-                <div id="bucket-DML" class="bucket" onclick="filterCategory('DML')">DML</div>
-                <div id="bucket-DQL" class="bucket" onclick="filterCategory('DQL')">DQL</div>
-                <div id="bucket-DCL" class="bucket" onclick="filterCategory('DCL')">DCL</div>
-                <div id="bucket-TCL" class="bucket" onclick="filterCategory('TCL')">TCL</div>
-            </div>
+      <button
+        class="nav-item"
+        onclick="switchTab('developed')"
+      >
+        <span class="nav-icon">👨‍💻</span>
+        Developed By
+      </button>
+    </nav>
 
-            <div id="resultsContainer"></div>
-            
-        </div>
+    <button
+  class="topbar-theme-toggle sidebar-theme-toggle"
+  onclick="document.body.classList.toggle('dark')"
+  aria-label="Toggle Theme"
+>
+  <span class="mode-state state-light">
+    <span>🌙</span>
+    <span>Dark</span>
+  </span>
 
-        <!-- LEARN TAB -->
-        <div id="learn" class="tab-content">
-            <h2>Module 1 – SQL Fundamentals Concept</h2>
-            <p>SQL commands are strictly grouped into five major categories based on their functional objectives within a Relational Database Management System (RDBMS):</p>
-            
-            <div class="tree-map">
-<span class="tree-root">[STANDARD SQL ENGINE]</span>
- ├── <span class="tree-node">DDL</span> (Data Definition)  : Modifies schema structure (CREATE, ALTER, DROP, TRUNCATE)
- ├── <span class="tree-node">DML</span> (Data Manipulation) : Manages row-level data (INSERT, UPDATE, DELETE)
- ├── <span class="tree-node">DQL</span> (Data Query)        : Retrieves target data (SELECT)
- ├── <span class="tree-node">DCL</span> (Data Control)      : Manages access security (GRANT, REVOKE)
- └── <span class="tree-node">TCL</span> (Transaction Control): Manages session states (COMMIT, ROLLBACK)
-            </div>
+  <span class="mode-state state-dark">
+    <span>☀️</span>
+    <span>Light</span>
+  </span>
+</button>
 
-            <h3>Educational Video Overview</h3>
-            <iframe width="100%" height="400" src="https://www.youtube.com/embed/HXV3zeQKqGY" frameborder="0" allowfullscreen style="border: 1px solid var(--border); border-radius: 3px;"></iframe>
+  </aside>
 
-            <h3>References & Acknowledgements</h3>
-            <ul style="color: var(--text-muted);">
-                <li><strong>Book:</strong> <em>Database System Concepts (7th Edition)</em> by Abraham Silberschatz.</li>
-                <li><strong>Website:</strong> W3Schools SQL Tutorial & Documentation.</li>
-                <li><strong>Video:</strong> Programming with Mosh - SQL Tutorial for Beginners.</li>
-            </ul>
-        </div>
+  <main>
 
-        <!-- HELP TAB -->
-        <div id="help" class="tab-content">
-            <h2>User Manual / Help</h2>
-            <p>Welcome to the SQL Command Classifier. This application utilizes a custom Node.js backend parsing engine to evaluate raw SQL strings and categorize them into standard RDBMS structures.</p>
-            
-            <h3>How to operate the system:</h3>
-            <ol style="color: var(--text-muted); margin-bottom: 25px;">
-                <li><strong>Navigate to Input:</strong> Open the "Query Classifier" tab.</li>
-                <li><strong>Provide Input:</strong> Type or paste any valid SQL command into the text box. <em>(Note: You can batch-process multiple commands by separating them with a semicolon <code>;</code>)</em>.</li>
-                <li><strong>Process Command:</strong> Click the blue <strong>Execute Parser</strong> button.</li>
-                <li><strong>Interpret Output:</strong> Review the Output Console below. It will dynamically generate a classification card for every valid command detected.</li>
-                <li><strong>Filter Results:</strong> Click on any of the category buckets (DDL, DML, etc.) to filter the visible results. Click it again to show all.</li>
-                <li><strong>Generate Log:</strong> Click the <strong>Download Report</strong> button to save a <code>.txt</code> execution log.</li>
-            </ol>
-        </div>
-
-        <!-- DEVELOPED BY TAB -->
-        <div id="team" class="tab-content">
-            <h2>Developed By</h2>
-            <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 3px; border: 1px solid var(--border); color: var(--text-main);">
-                <p style="margin: 0 0 10px 0;"><strong>Project:</strong> SQL Command Classifier</p>
-                <p style="margin: 0 0 10px 0;"><strong>Institution:</strong> VIT Chennai</p>
-                <p style="margin: 0 0 20px 0;"><strong>Guided By:</strong> Dr. Swaminathan A , Professor</p>
-                
-                <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
-                
-                <h3 style="margin-top: 0; color: var(--primary);">Team Members</h3>
-                <ul style="list-style-type: none; padding: 0; margin: 0;">
-                    <li style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed var(--border);">
-                        <strong style="font-size: 1.1rem; color: var(--keyword);">Sree Vishnu</strong> (Reg No: 25BCE5223)<br>
-                        <span style="color: var(--text-muted);">Role: Backend API & Integration</span>
-                    </li>
-                    <li style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed var(--border);">
-                        <strong style="font-size: 1.1rem; color: var(--keyword);">Tharun.G</strong> (Reg No: 25BCE5231)<br>
-                        <span style="color: var(--text-muted);">Role: Frontend Interface</span>
-                    </li>
-                    <li>
-                        <strong style="font-size: 1.1rem; color: var(--keyword);">Sriram</strong> (Reg No: 25BCE1444)<br>
-                        <span style="color: var(--text-muted);">Role: Documentation and testing</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
+<header class="topbar">
+  <div>
+    <div class="eyebrow" id="viewEyebrow">
+      Overview
     </div>
 
-    <!-- JS Logic -->
-    <script>
-        window.batchResults = [];
-        let currentFilter = null; // Tracks active filter
+    <h1 id="viewTitle">
+      SQL Commands Classifier
+    </h1>
+  </div>
 
-        window.onload = function() {
-            highlightSQL();
-            loadHistory();
-        };
+  <button
+    class="topbar-theme-toggle"
+    onclick="document.body.classList.toggle('dark')"
+    aria-label="Toggle Theme"
+  >
+    <span class="mode-state state-light">
+      <span>🌙</span>
+      <span>Dark</span>
+    </span>
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
-        }
+    <span class="mode-state state-dark">
+      <span>☀️</span>
+      <span>Light</span>
+    </span>
+  </button>
+</header>
+    <div
+      id="view-classifier"
+      class="tab-view active"
+    >
 
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
-            highlightSQL(); 
-        }
+      <section class="hero">
 
-        // --- FILTERING LOGIC ---
-        function filterCategory(cat) {
-            const isAlreadyFiltered = document.getElementById('bucket-' + cat).classList.contains('focus-filter');
-            
-            // Reset all visually
-            document.querySelectorAll('.bucket').forEach(b => {
-                b.classList.remove('focus-filter');
-                b.style.opacity = isAlreadyFiltered ? '' : '0.2'; 
-            });
+        <div class="eyebrow">
+           Query Classifier
+        </div>
 
-            // If we are applying a new filter (not removing it)
-            if (!isAlreadyFiltered) {
-                document.getElementById('bucket-' + cat).classList.add('focus-filter');
-                document.getElementById('bucket-' + cat).style.opacity = '1';
-            }
+        <h2>
+          Turn SQL into clear decisions.
+        </h2>
 
-            // Hide/show the result cards
-            document.querySelectorAll('.result-grid').forEach(grid => {
-                if (isAlreadyFiltered || grid.getAttribute('data-category') === cat) {
-                    grid.style.display = 'block';
-                } else {
-                    grid.style.display = 'none';
-                }
-            });
-        }
+        <p>
+          Parse database commands, review their structural intent,
+          and export structured reports.
+        </p>
 
-        function loadHistory() {
-            const history = JSON.parse(localStorage.getItem('sqlHistory') || '[]');
-            const list = document.getElementById('historyList');
-            const container = document.getElementById('historyContainer');
-            if (history.length > 0) {
-                container.style.display = 'block';
-                list.innerHTML = history.reverse().slice(0, 5).map(q => 
-                    `<span class="history-item" onclick="loadQuery(this.innerText)">${q.replace(/</g, '&lt;')}</span>`
-                ).join('');
-            }
-        }
+      </section>
 
-        function loadQuery(q) {
-            document.getElementById('sqlInput').value = q;
-            highlightSQL();
-            window.scrollTo(0, 0);
-        }
+      <section class="card">
 
-        function saveToHistory(sql) {
-            if (!sql.trim()) return;
-            let history = JSON.parse(localStorage.getItem('sqlHistory') || '[]');
-            if (history[history.length - 1] !== sql) {
-                history.push(sql);
-                localStorage.setItem('sqlHistory', JSON.stringify(history));
-            }
-            loadHistory();
-        }
-        
-        function highlightSQL() {
-            const text = document.getElementById('sqlInput').value;
-            let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            
-            let highlighted = escaped.replace(/(--.*)|('.*?'|".*?")|\b(CREATE|ALTER|DROP|TRUNCATE|INSERT|UPDATE|DELETE|SELECT|GRANT|REVOKE|COMMIT|ROLLBACK|SAVEPOINT|TABLE|FROM|WHERE|INTO|VALUES|SET|AND|OR|NOT|NULL|PRIMARY|KEY)\b|\b(INT|VARCHAR|CHAR|DATE|BOOLEAN|FLOAT|DOUBLE)\b/gi, function(match, comment, str, keyword, type) {
-                if (comment) return '<span class="hl-comment">' + comment + '</span>';
-                if (str)     return '<span class="hl-string">' + str + '</span>';
-                if (keyword) return '<span class="hl-keyword">' + keyword + '</span>';
-                if (type)    return '<span class="hl-type">' + type + '</span>';
-                return match;
-            });
-            
-            if (text.length > 0 && text[text.length - 1] === '\n') {
-                highlighted += ' ';
-            }
-            document.getElementById('backdrop').innerHTML = highlighted;
-        }
+        <h2 class="section-title">
+          SQL Query Editor
+        </h2>
 
-        function syncScroll() {
-            document.getElementById('backdrop').scrollTop = document.getElementById('sqlInput').scrollTop;
-        }
+        <p class="section-description">
+          Enter your SQL workflow. The parser will highlight the active categories below.
+        </p>
 
-        async function analyzeSQL() {
-            const sqlText = document.getElementById('sqlInput').value;
-            if (!sqlText.trim()) return alert('Please enter a SQL command in the Query Editor.');
+        <div class="editor">
 
-            saveToHistory(sqlText);
+          <div
+            class="line-numbers"
+            id="lineNumbers"
+          >
+            1<br>
+            2<br>
+            3<br>
+            4
+          </div>
 
-            const container = document.getElementById('resultsContainer');
-            container.innerHTML = '';
-            window.batchResults = [];
-            currentFilter = null; // reset filters on new run
+          <textarea
+            id="sqlInput"
+            spellcheck="false"
+            placeholder="-- Type your SQL here...
+CREATE TABLE Users (id INT, name VARCHAR(50));
+INSERT INTO Users VALUES (1, 'Alice');
+SELECT * FROM Users;
+COMMIT;"
+          ></textarea>
 
-            document.querySelectorAll('.bucket').forEach(b => {
-                b.className = 'bucket';
-                b.style.opacity = '0.4'; // reset to dim state
-            });
-            document.getElementById('bucketsContainer').style.display = 'flex';
+        </div>
 
-            const commands = sqlText.split(';').map(cmd => cmd.trim()).filter(cmd => cmd.length > 0);
+        <div class="actions">
 
-            for (let i = 0; i < commands.length; i++) {
-                try {
-                    const response = await fetch('http://localhost:3000/classify', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sql: commands[i] })
-                    });
+          <button
+            class="btn btn-primary"
+            onclick="executeParser()"
+          >
+            ▶ Execute & Classify
+          </button>
 
-                    const data = await response.json();
-                    window.batchResults.push({ input: commands[i], ...data });
+          <button
+            class="btn btn-secondary"
+            onclick="
+              document.getElementById('sqlInput').value = '';
+              document.getElementById('resultList').innerHTML = '';
+              resetGlow();
+              updateLines();
+              lastReport = [];
+              document.getElementById('downloadReportBtn').disabled = true;
+            "
+          >
+            Clear
+          </button>
 
-                    let badgeColor = '';
-                    let cat = '';
-                    if (data.valid) {
-                        cat = data.category.toUpperCase().substring(0, 3);
-                        const bucket = document.getElementById('bucket-' + cat);
-                        if (bucket) {
-                            setTimeout(() => {
-                                bucket.classList.add('active-' + cat.toLowerCase());
-                                bucket.style.opacity = '1';
-                            }, i * 200); 
-                        }
-                        
-                        if (cat === 'DDL') badgeColor = 'background-color: #3b82f6;';      
-                        else if (cat === 'DML') badgeColor = 'background-color: #f97316;'; 
-                        else if (cat === 'DQL') badgeColor = 'background-color: #10b981;'; 
-                        else if (cat === 'DCL') badgeColor = 'background-color: #a855f7;'; 
-                        else if (cat === 'TCL') badgeColor = 'background-color: #ef4444;'; 
-                    } else {
-                        badgeColor = 'background-color: var(--danger);';
-                    }
-                    const badgeClass = data.valid ? 'status-badge' : 'status-badge error';
-                    
-                    const safeQuery = commands[i].replace(/"/g, '\\"');
-                    const pythonCode = `<div class="python-snippet">
-<span class="hl-keyword">import</span> sqlite3
-conn = sqlite3.connect(<span class="hl-string">'database.db'</span>)
-cursor = conn.cursor()
-cursor.execute(<span class="hl-string">"""${safeQuery}"""</span>)
-conn.commit()
-conn.close()</div>`;
+          <button
+            class="btn btn-download"
+            id="downloadReportBtn"
+            onclick="downloadReport()"
+            disabled
+            aria-label="Download report"
+          >
+            <svg
+              class="download-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M12 3v11"></path>
+              <path d="m7 10 5 5 5-5"></path>
+              <path d="M5 19h14"></path>
+            </svg>
 
-                    // ADDED data-category attribute for filtering
-                    const resultHTML = `
-                        <div class="result-grid" data-category="${cat}" style="display: block;">
-                            <div class="grid-header">
-                                <span>Command ${i + 1}: <code style="text-transform: none; background: rgba(0,0,0,0.2); padding: 2px 6px;">${commands[i]}</code></span>
-                                <span class="${badgeClass}" style="${badgeColor}">${data.category} DETECTED</span>
-                            </div>
-                            <table>
-                                <tr>
-                                    <th>Detected Keyword</th>
-                                    <td>${data.command}</td>
-                                </tr>
-                                <tr>
-                                    <th>Primary Purpose</th>
-                                    <td class="td-text">${data.purpose}</td>
-                                </tr>
-                                <tr>
-                                    <th>Database Effect</th>
-                                    <td class="td-text">${data.effect}</td>
-                                </tr>
-                                <tr>
-                                    <th>Engine Analysis</th>
-                                    <td class="td-text" style="font-style: italic; color: var(--text-muted);">${data.explanation}</td>
-                                </tr>
-                                <tr>
-                                    <th>Python Integration</th>
-                                    <td class="td-text">
-                                        <span style="font-size: 12px; color: var(--text-muted);">Generated script for backend execution:</span>
-                                        ${pythonCode}
-                                    </td>
-                                </tr>
-                            </table>
+            <span>
+              Download Report
+            </span>
+          </button>
+
+        </div>
+
+      </section>
+
+      <section class="card">
+
+        <h2 class="section-title">
+          Execution Results
+        </h2>
+
+        <div
+          class="result-list"
+          id="resultList"
+        >
+          <div
+            style="
+              text-align: center;
+              color: var(--muted);
+              padding: 40px 0;
+              font-size: 14px;
+            "
+          >
+            Awaiting query execution...
+          </div>
+        </div>
+
+        <div
+          class="legend"
+          id="categoryLegend"
+        >
+
+          <div
+            class="legend-item legend-ddl"
+            data-type="DDL"
+          >
+            DDL
+            <br>
+            <span
+              style="
+                font-size:10px;
+                font-weight:600;
+                opacity:0.8
+              "
+            >
+              Data Definition
+            </span>
+          </div>
+
+          <div
+            class="legend-item legend-dml"
+            data-type="DML"
+          >
+            DML
+            <br>
+            <span
+              style="
+                font-size:10px;
+                font-weight:600;
+                opacity:0.8
+              "
+            >
+              Data Manipulation
+            </span>
+          </div>
+
+          <div
+            class="legend-item legend-dql"
+            data-type="DQL"
+          >
+            DQL
+            <br>
+            <span
+              style="
+                font-size:10px;
+                font-weight:600;
+                opacity:0.8
+              "
+            >
+              Data Query
+            </span>
+          </div>
+
+          <div
+            class="legend-item legend-dcl"
+            data-type="DCL"
+          >
+            DCL
+            <br>
+            <span
+              style="
+                font-size:10px;
+                font-weight:600;
+                opacity:0.8
+              "
+            >
+              Data Control
+            </span>
+          </div>
+
+          <div
+            class="legend-item legend-tcl"
+            data-type="TCL"
+          >
+            TCL
+            <br>
+            <span
+              style="
+                font-size:10px;
+                font-weight:600;
+                opacity:0.8
+              "
+            >
+              Transaction
+            </span>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+    <div
+      id="view-learn"
+      class="tab-view"
+    >
+
+      <section
+        class="hero"
+        style="background: #1760d7;"
+      >
+
+        <div class="eyebrow">
+          📚 Knowledge Base
+        </div>
+
+        <h2>
+          SQL Architecture & Resources
+        </h2>
+
+        <p>
+          Master the five fundamental sub-languages of SQL with structured maps and top-rated external courses.
+        </p>
+
+      </section>
+
+      <section class="card">
+
+        <h2 class="section-title">
+          SQL Sub-Language Hierarchy
+        </h2>
+
+        <p class="section-description">
+          Interactive map of SQL command structures (Inspired by architectural diagrams).
+        </p>
+
+        <div class="mindmap-container">
+
+          <div class="mindmap">
+
+            <ul>
+
+              <li>
+
+                <div
+                  class="mm-node"
+                  style="
+                    background: var(--blue);
+                    color: white;
+                    border-color: transparent;
+                  "
+                >
+                  <h4
+                    style="
+                      color: white;
+                      font-size: 18px;
+                    "
+                  >
+                    SQL
+                  </h4>
+
+                  <p
+                    style="
+                      color: #c7dafa;
+                    "
+                  >
+                    Structured Query Language
+                  </p>
+                </div>
+
+                <ul>
+
+                  <li>
+
+                    <div class="mm-node">
+                      <h4>DDL</h4>
+                      <p>Data Definition Language</p>
+                    </div>
+
+                    <ul>
+
+                      <li>
+                        <div class="mm-node mm-leaf">
+                          <h4>CREATE</h4>
+                          <p>Builds new db/tables</p>
                         </div>
-                    `;
-                    container.innerHTML += resultHTML;
+                      </li>
 
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert(`Connection refused on Command ${i + 1}. Ensure the Node.js backend is running on port 3000.`);
-                    break; 
-                }
-            }
+                      <li>
+                        <div class="mm-node mm-leaf">
+                          <h4>ALTER</h4>
+                          <p>Modifies table structure</p>
+                        </div>
+                      </li>
+
+                      <li>
+                        <div class="mm-node mm-leaf">
+                          <h4>DROP</h4>
+                          <p>Deletes objects entirely</p>
+                        </div>
+                      </li>
+
+                    </ul>
+
+                  </li>
+
+                  <li>
+
+                    <div class="mm-node">
+                      <h4>DML</h4>
+                      <p>Data Manipulation Language</p>
+                    </div>
+
+                    <ul>
+
+                      <li>
+                        <div class="mm-node mm-leaf">
+                          <h4>INSERT</h4>
+                          <p>Adds new rows/data</p>
+                        </div>
+                      </li>
+
+                      <li>
+                        <div class="mm-node mm-leaf">
+                          <h4>UPDATE</h4>
+                          <p>Changes existing data</p>
+                        </div>
+                      </li>
+
+                      <li>
+                        <div class="mm-node mm-leaf">
+                          <h4>DELETE</h4>
+                          <p>Removes specific rows</p>
+                        </div>
+                      </li>
+
+                    </ul>
+
+                  </li>
+
+                  <li>
+
+                    <div class="mm-node">
+                      <h4>DQL</h4>
+                      <p>Data Query Language</p>
+                    </div>
+
+                    <ul>
+
+                      <li>
+                        <div class="mm-node mm-leaf">
+                          <h4>SELECT</h4>
+                          <p>Retrieves specific data</p>
+                        </div>
+                      </li>
+
+                    </ul>
+
+                  </li>
+
+                  <li>
+
+                    <div class="mm-node">
+                      <h4>DCL</h4>
+                      <p>Data Control Language</p>
+                    </div>
+
+                    <ul>
+
+                      <li>
+                        <div class="mm-node mm-leaf">
+                          <h4>GRANT</h4>
+                          <p>Gives user access</p>
+                        </div>
+                      </li>
+
+                      <li>
+                        <div class="mm-node mm-leaf">
+                          <h4>REVOKE</h4>
+                          <p>Removes user access</p>
+                        </div>
+                      </li>
+
+                    </ul>
+
+                  </li>
+
+                  <li>
+
+                    <div class="mm-node">
+                      <h4>TCL</h4>
+                      <p>Transaction Control</p>
+                    </div>
+
+                    <ul>
+
+                      <li>
+                        <div class="mm-node mm-leaf">
+                          <h4>COMMIT</h4>
+                          <p>Saves changes permanently</p>
+                        </div>
+                      </li>
+
+                      <li>
+                        <div class="mm-node mm-leaf">
+                          <h4>ROLLBACK</h4>
+                          <p>Undoes recent changes</p>
+                        </div>
+                      </li>
+
+                    </ul>
+
+                  </li>
+
+                </ul>
+
+              </li>
+
+            </ul>
+
+          </div>
+
+        </div>
+
+        <h2
+          class="section-title"
+          style="margin-top: 40px;"
+        >
+          Curated Learning Resources
+        </h2>
+
+        <div class="resource-grid">
+
+          <a
+            href="https://www.youtube.com/watch?v=HXV3zeQKqGY"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="resource-card"
+          >
+
+            <div class="resource-type">
+              📺 YouTube Course
+            </div>
+
+            <div class="resource-title">
+              SQL Tutorial - Full Course
+            </div>
+
+            <div class="resource-desc">
+              freeCodeCamp's comprehensive 4-hour beginner database course covering all SQL fundamentals.
+            </div>
+
+            <div class="resource-link">
+              Watch on YouTube ↗
+            </div>
+
+          </a>
+
+          <a
+            href="https://download.goalkicker.com/SQLBook/SQLNotesForProfessionals.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="resource-card"
+          >
+
+            <div class="resource-type">
+              📖 Downloadable eBook
+            </div>
+
+            <div class="resource-title">
+              SQL Notes for Professionals
+            </div>
+
+            <div class="resource-desc">
+              Free SQL reference book covering SELECT, JOIN, GROUP BY, transactions, data types, and more.
+            </div>
+
+            <div class="resource-link">
+              Download PDF ↗
+            </div>
+
+          </a>
+
+          <a
+            href="https://www.coursera.org/learn/sql-for-data-science"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="resource-card"
+          >
+
+            <div class="resource-type">
+              🎓 Coursera Certification
+            </div>
+
+            <div class="resource-title">
+              SQL for Data Science
+            </div>
+
+            <div class="resource-desc">
+              University of California, Davis (UC Davis) official course on data querying and analysis.
+            </div>
+
+            <div class="resource-link">
+              View Course ↗
+            </div>
+
+          </a>
+
+          <a
+            href="https://www.udemy.com/course/the-complete-sql-bootcamp/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="resource-card"
+          >
+
+            <div class="resource-type">
+              💻 Udemy Bootcamp
+            </div>
+
+            <div class="resource-title">
+              The Complete SQL Bootcamp
+            </div>
+
+            <div class="resource-desc">
+              Jose Portilla's bestseller covering PostgreSQL, subqueries, and advanced joins.
+            </div>
+
+            <div class="resource-link">
+              View Course ↗
+            </div>
+
+          </a>
+
+        </div>
+
+      </section>
+
+    </div>
+
+    <div
+      id="view-help"
+      class="tab-view"
+    >
+
+      <section
+        class="hero"
+        style="
+          background: linear-gradient(
+            135deg,
+            #0f766e,
+            #14b8a6
+          );
+        "
+      >
+
+        <div class="eyebrow">
+          ❔ Quick Guide
+        </div>
+
+        <h2>
+          How to use this site
+        </h2>
+
+        <p>
+          Classify SQL commands, understand what each command category means, and download a report of your results.
+        </p>
+
+      </section>
+
+      <section class="card">
+
+        <h2 class="section-title">
+          Using the Query Workspace
+        </h2>
+
+        <div class="resource-grid">
+
+          <div class="resource-card">
+
+            <div class="resource-type">
+              STEP 01
+            </div>
+
+            <div class="resource-title">
+              Enter SQL commands
+            </div>
+
+            <div class="resource-desc">
+              Type or paste one or more SQL commands into the editor.
+              Separate multiple commands with a semicolon (;).
+            </div>
+
+          </div>
+
+          <div class="resource-card">
+
+            <div class="resource-type">
+              STEP 02
+            </div>
+
+            <div class="resource-title">
+              Execute & Classify
+            </div>
+
+            <div class="resource-desc">
+              Click “Execute & Classify”. The site verifies standard SQL syntax and identifies each command as DDL, DML, DQL, DCL, TCL, or flags syntax errors.
+            </div>
+
+          </div>
+
+          <div class="resource-card">
+
+            <div class="resource-type">
+              STEP 03
+            </div>
+
+            <div class="resource-title">
+              Read the results
+            </div>
+
+            <div class="resource-desc">
+              Check the result list for each command. The category legend below highlights the categories found in your query workspace.
+            </div>
+
+          </div>
+
+          <div class="resource-card">
+
+            <div class="resource-type">
+              STEP 04
+            </div>
+
+            <div class="resource-title">
+              Download the report
+            </div>
+
+            <div class="resource-desc">
+              After a successful classification, click “Download Report” to save a text report containing the query, classifications, counts, and timestamp.
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <section class="card">
+
+        <h2 class="section-title">
+          What the categories mean
+        </h2>
+
+        <div class="result-list">
+
+          <div class="result-row">
+            <div class="result-tag tag-ddl">
+              DDL
+            </div>
+
+            <div>
+              Defines or changes database structures —
+              CREATE, ALTER, DROP, TRUNCATE, RENAME.
+            </div>
+          </div>
+
+          <div class="result-row">
+            <div class="result-tag tag-dml">
+              DML
+            </div>
+
+            <div>
+              Changes data stored in tables —
+              INSERT, UPDATE, DELETE, MERGE.
+            </div>
+          </div>
+
+          <div class="result-row">
+            <div class="result-tag tag-dql">
+              DQL
+            </div>
+
+            <div>
+              Retrieves data —
+              SELECT and WITH queries.
+            </div>
+          </div>
+
+          <div class="result-row">
+            <div class="result-tag tag-dcl">
+              DCL
+            </div>
+
+            <div>
+              Controls permissions —
+              GRANT and REVOKE.
+            </div>
+          </div>
+
+          <div class="result-row">
+            <div class="result-tag tag-tcl">
+              TCL
+            </div>
+
+            <div>
+              Controls transactions —
+              COMMIT, ROLLBACK, SAVEPOINT.
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <section class="card">
+
+        <h2 class="section-title">
+          Other sections
+        </h2>
+
+        <p class="section-description">
+          <strong>Learn & Resources</strong>
+          contains the SQL hierarchy and external learning resources.
+          <strong>Developed By</strong>
+          shows the project guide and team details.
+          Use the theme switch in the sidebar to switch between light and dark mode.
+        </p>
+
+      </section>
+
+    </div>
+
+    <div
+      id="view-developed"
+      class="tab-view"
+    >
+
+      <section
+        class="card"
+        style="margin-top: 0;"
+      >
+
+        <div class="guide-banner">
+
+          <div class="guide-badge">
+            🎓
+          </div>
+
+          <div>
+
+            <div
+              style="
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                font-size: 11px;
+                font-weight: 800;
+                margin-bottom: 4px;
+                opacity: 0.8;
+              "
+            >
+              Project Guided By
+            </div>
+
+            <h3
+              style="
+                margin: 0 0 4px;
+                font-size: 24px;
+              "
+            >
+              Swaminathan A
+            </h3>
+
+            <p
+              style="
+                margin: 0;
+                font-size: 14px;
+                opacity: 0.9;
+              "
+            >
+              Professor, Vellore Institute of Technology (VIT) Chennai
+            </p>
+
+          </div>
+
+        </div>
+
+        <h2 class="section-title">
+          Project Team
+        </h2>
+
+        <p class="section-description">
+          Academic implementation for Database Management Systems (DBMS).
+        </p>
+
+        <div class="team-grid">
+
+          <div class="team-card">
+
+            <div class="team-avatar">
+              SV
+            </div>
+
+            <div class="team-name">
+              Sree Vishnu M.S 
+            </div>
+
+            <div class="team-reg">
+              25BCE5223
+            </div>
+
+            <div class="team-role">
+              Server Setup & API
+            </div>
+
+          </div>
+
+          <div class="team-card">
+
+            <div class="team-avatar">
+              TG
+            </div>
+
+            <div class="team-name">
+              Tharun.G
+            </div>
+
+            <div class="team-reg">
+              25BCE5231
+            </div>
+
+            <div class="team-role">
+              Frontend & UI Architecture
+            </div>
+
+          </div>
+
+          <div class="team-card">
+
+            <div class="team-avatar">
+              SV
+            </div>
+
+            <div class="team-name">
+              Sriram.V
+            </div>
+
+            <div class="team-reg">
+              25BCE1444
+            </div>
+
+            <div class="team-role">
+              Documentation
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
+
+function switchTab(tabId) {
+
+  document
+    .querySelectorAll('.tab-view')
+    .forEach(t => t.classList.remove('active'));
+
+  document
+    .querySelectorAll('.nav-item')
+    .forEach(b => b.classList.remove('active'));
+
+  document
+    .getElementById('view-' + tabId)
+    .classList.add('active');
+
+  event.currentTarget.classList.add('active');
+
+  const titles = {
+
+    classifier: {
+      e: '✣ Overview',
+      t: 'Database Query Intelligence'
+    },
+
+    learn: {
+      e: '📚 Modules',
+      t: 'Learning Resources'
+    },
+
+    help: {
+      e: '❔ Guide',
+      t: 'How to Use This Site'
+    },
+
+    developed: {
+      e: '👨‍💻 Credits',
+      t: 'Development Team'
+    }
+
+  };
+
+  document.getElementById('viewEyebrow').innerText =
+    titles[tabId].e;
+
+  document.getElementById('viewTitle').innerText =
+    titles[tabId].t;
+}
+
+
+/* ============================================================
+   LINE NUMBERS
+   ============================================================ */
+
+const input =
+  document.getElementById('sqlInput');
+
+const lineNumbers =
+  document.getElementById('lineNumbers');
+
+function updateLines() {
+
+  const lines =
+    input.value.split('\n').length;
+
+  lineNumbers.innerHTML =
+    Array(
+      Math.max(1, lines)
+    )
+      .fill(0)
+      .map((_, i) => i + 1)
+      .join('<br>');
+}
+
+input.addEventListener(
+  'input',
+  updateLines
+);
+
+
+/* ============================================================
+   RESET GLOW
+   ============================================================ */
+
+function resetGlow() {
+
+  document
+    .querySelectorAll('.legend-item')
+    .forEach(el => {
+
+      el.classList.remove(
+        'active-glow'
+      );
+
+      const badge =
+        el.querySelector('.glow-badge');
+
+      if (badge) {
+        badge.remove();
+      }
+
+    });
+
+}
+
+
+/* ============================================================
+   STRICT SYNTAX RULES & VALIDATION PATTERNS
+   ============================================================ */
+
+const syntaxRules = [
+  // --- DDL ---
+  {
+    keyword: 'CREATE',
+    category: 'DDL',
+    tag: 'tag-ddl',
+    regex: /^\s*CREATE\s+(TABLE|DATABASE|INDEX|VIEW)\s+[a-zA-Z_]\w*(\s*\([\s\S]+\))?\s*$/i,
+    expectedSyntax: 'CREATE TABLE table_name (col1 type, col2 type...);'
+  },
+  {
+    keyword: 'ALTER',
+    category: 'DDL',
+    tag: 'tag-ddl',
+    regex: /^\s*ALTER\s+TABLE\s+[a-zA-Z_]\w*\s+(ADD|DROP|MODIFY|RENAME)[\s\S]+$/i,
+    expectedSyntax: 'ALTER TABLE table_name ADD/DROP/MODIFY column_name datatype;'
+  },
+  {
+    keyword: 'DROP',
+    category: 'DDL',
+    tag: 'tag-ddl',
+    regex: /^\s*DROP\s+(TABLE|DATABASE|INDEX|VIEW)\s+[a-zA-Z_]\w*\s*$/i,
+    expectedSyntax: 'DROP TABLE table_name;'
+  },
+  {
+    keyword: 'TRUNCATE',
+    category: 'DDL',
+    tag: 'tag-ddl',
+    regex: /^\s*TRUNCATE\s+TABLE\s+[a-zA-Z_]\w*\s*$/i,
+    expectedSyntax: 'TRUNCATE TABLE table_name;'
+  },
+  {
+    keyword: 'RENAME',
+    category: 'DDL',
+    tag: 'tag-ddl',
+    regex: /^\s*RENAME\s+TABLE\s+[a-zA-Z_]\w*\s+TO\s+[a-zA-Z_]\w*\s*$/i,
+    expectedSyntax: 'RENAME TABLE old_name TO new_name;'
+  },
+
+  // --- DML ---
+  {
+    keyword: 'INSERT',
+    category: 'DML',
+    tag: 'tag-dml',
+    regex: /^\s*INSERT\s+INTO\s+[a-zA-Z_]\w*(\s*\([\w\s,]+\))?\s+VALUES\s*\([\s\S]+\)\s*$/i,
+    expectedSyntax: 'INSERT INTO table_name (cols...) VALUES (vals...);'
+  },
+  {
+    keyword: 'UPDATE',
+    category: 'DML',
+    tag: 'tag-dml',
+    regex: /^\s*UPDATE\s+[a-zA-Z_]\w*\s+SET\s+[\w\s=,'"]+(\s+WHERE\s+.+)?\s*$/i,
+    expectedSyntax: 'UPDATE table_name SET col = val WHERE condition;'
+  },
+  {
+    keyword: 'DELETE',
+    category: 'DML',
+    tag: 'tag-dml',
+    regex: /^\s*DELETE\s+FROM\s+[a-zA-Z_]\w*(\s+WHERE\s+.+)?\s*$/i,
+    expectedSyntax: 'DELETE FROM table_name WHERE condition;'
+  },
+  {
+    keyword: 'MERGE',
+    category: 'DML',
+    tag: 'tag-dml',
+    regex: /^\s*MERGE\s+INTO\s+[a-zA-Z_]\w*[\s\S]+USING[\s\S]+ON[\s\S]+$/i,
+    expectedSyntax: 'MERGE INTO target USING source ON condition...'
+  },
+
+  // --- DQL ---
+  {
+    keyword: 'SELECT',
+    category: 'DQL',
+    tag: 'tag-dql',
+    regex: /^\s*SELECT\s+[\s\S]+\s+FROM\s+[a-zA-Z_]\w*[\s\S]*$/i,
+    expectedSyntax: 'SELECT columns FROM table_name [WHERE condition];'
+  },
+  {
+    keyword: 'WITH',
+    category: 'DQL',
+    tag: 'tag-dql',
+    regex: /^\s*WITH\s+[a-zA-Z_]\w*\s+AS\s*\([\s\S]+\)\s*SELECT\s+[\s\S]+$/i,
+    expectedSyntax: 'WITH cte_name AS (subquery) SELECT ...;'
+  },
+
+  // --- DCL ---
+  {
+    keyword: 'GRANT',
+    category: 'DCL',
+    tag: 'tag-dcl',
+    regex: /^\s*GRANT\s+.+\s+ON\s+.+\s+TO\s+.+\s*$/i,
+    expectedSyntax: 'GRANT privilege ON object TO user;'
+  },
+  {
+    keyword: 'REVOKE',
+    category: 'DCL',
+    tag: 'tag-dcl',
+    regex: /^\s*REVOKE\s+.+\s+ON\s+.+\s+FROM\s+.+\s*$/i,
+    expectedSyntax: 'REVOKE privilege ON object FROM user;'
+  },
+
+  // --- TCL ---
+  {
+    keyword: 'COMMIT',
+    category: 'TCL',
+    tag: 'tag-tcl',
+    regex: /^\s*COMMIT\s*$/i,
+    expectedSyntax: 'COMMIT;'
+  },
+  {
+    keyword: 'ROLLBACK',
+    category: 'TCL',
+    tag: 'tag-tcl',
+    regex: /^\s*ROLLBACK(\s+TO\s+SAVEPOINT\s+[a-zA-Z_]\w*)?\s*$/i,
+    expectedSyntax: 'ROLLBACK [TO SAVEPOINT savepoint_name];'
+  },
+  {
+    keyword: 'SAVEPOINT',
+    category: 'TCL',
+    tag: 'tag-tcl',
+    regex: /^\s*SAVEPOINT\s+[a-zA-Z_]\w*\s*$/i,
+    expectedSyntax: 'SAVEPOINT savepoint_name;'
+  }
+];
+
+
+/* ============================================================
+   REPORT STORAGE
+   ============================================================ */
+
+let lastReport = [];
+
+
+/* ============================================================
+   DOWNLOAD REPORT
+   ============================================================ */
+
+function downloadReport() {
+
+  if (!lastReport.length) {
+    return;
+  }
+
+  const now = new Date();
+  const timestamp = now.toLocaleString();
+
+  const counts = lastReport.reduce((acc, item) => {
+    acc[item.category] = (acc[item.category] || 0) + 1;
+    return acc;
+  }, {});
+
+  const reportLines = [
+    'SQL COMMAND CLASSIFIER REPORT',
+    '================================',
+    `Generated: ${timestamp}`,
+    '',
+    `Total commands processed: ${lastReport.length}`,
+    '',
+    'CATEGORY SUMMARY',
+    '----------------',
+    ...Object.entries(counts).map(
+      ([category, count]) => `${category}: ${count}`
+    ),
+    '',
+    'COMMAND DETAILS & SYNTAX STATUS',
+    '-------------------------------',
+    ...lastReport.flatMap((item, index) => [
+      `${index + 1}. [${item.category}]`,
+      `   Query: ${item.query}`,
+      item.note ? `   Note: ${item.note}` : '',
+      ''
+    ]).filter(Boolean)
+  ];
+
+  const blob = new Blob([reportLines.join('\n')], {
+    type: 'text/plain;charset=utf-8'
+  });
+
+  const url = URL.revokeObjectURL ? URL.createObjectURL(blob) : '';
+  const downloadUrl = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.download = `sql-classification-report-${now.toISOString().slice(0, 10)}.txt`;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(downloadUrl);
+}
+
+
+/* ============================================================
+   EXECUTE & CLASSIFY (STRICT SYNTAX ENFORCEMENT)
+   ============================================================ */
+
+function executeParser() {
+
+  const text = input.value;
+  const list = document.getElementById('resultList');
+
+  resetGlow();
+  lastReport = [];
+
+  document.getElementById('downloadReportBtn').disabled = true;
+
+  /* Empty input */
+  if (!text.trim()) {
+    list.innerHTML = `
+      <div style="text-align: center; color: var(--muted); padding: 40px 0;">
+        Please enter SQL commands to classify.
+      </div>
+    `;
+    return;
+  }
+
+  /* Split commands by semicolon */
+  const queries = text
+    .split(';')
+    .map(q => q.trim())
+    .filter(q => q.length > 0);
+
+  let html = '';
+  const categoryCounts = {};
+
+  /* Process every query */
+  queries.forEach(query => {
+
+    let matchedRule = null;
+
+    // 1. Check if query matches strict syntax rule
+    for (let rule of syntaxRules) {
+      if (rule.regex.test(query)) {
+        matchedRule = rule;
+        break;
+      }
+    }
+
+    const preview = query.length > 60 ? query.substring(0, 60) + '...' : query;
+
+    if (matchedRule) {
+      // --- VALID SYNTAX MATCH ---
+      categoryCounts[matchedRule.category] = (categoryCounts[matchedRule.category] || 0) + 1;
+
+      lastReport.push({
+        query: query,
+        category: matchedRule.category,
+        note: 'Syntax Valid'
+      });
+
+      html += `
+        <div class="result-row">
+          <div class="result-tag ${matchedRule.tag}">
+            ${matchedRule.category}
+          </div>
+          <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text);">
+            ${preview.replace(/</g, '&lt;')}
+          </div>
+        </div>
+      `;
+    } else {
+      // --- SYNTAX ERROR / VIOLATION DETECTED ---
+      // Check which keyword user was attempting to run
+      const firstWord = (query.match(/^\s*([a-zA-Z]+)/) || [])[1];
+      let expectedNote = 'Invalid syntax or unrecognized command.';
+
+      if (firstWord) {
+        const potentialRule = syntaxRules.find(
+          r => r.keyword.toLowerCase() === firstWord.toLowerCase()
+        );
+        if (potentialRule) {
+          expectedNote = `Incomplete or broken syntax. Expected: ${potentialRule.expectedSyntax}`;
         }
+      }
 
-        function downloadReport() {
-            if (window.batchResults.length === 0) return alert('Run the parser before downloading the report.');
-            
-            let reportContent = `DBMS BATCH EXECUTION LOG\n=========================================\n`;
-            
-            window.batchResults.forEach((res, index) => {
-                reportContent += `\n--- [COMMAND ${index + 1}] ---\n`;
-                reportContent += `Input:    ${res.input}\n`;
-                reportContent += `Category: ${res.category}\n`;
-                reportContent += `Keyword:  ${res.command}\n`;
-                reportContent += `Purpose:  ${res.purpose}\n`;
-                reportContent += `Effect:   ${res.effect}\n`;
-                reportContent += `Analysis: ${res.explanation}\n`;
-                reportContent += `-----------------------------------------\n`;
-            });
+      categoryCounts['ERROR'] = (categoryCounts['ERROR'] || 0) + 1;
 
-            const blob = new Blob([reportContent], { type: 'text/plain' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'Query_Execution_Report.txt';
-            link.click();
-        }
-    </script>
+      lastReport.push({
+        query: query,
+        category: 'SYNTAX_ERROR',
+        note: expectedNote
+      });
+
+      html += `
+        <div class="result-row error-row">
+          <div class="result-tag tag-error">
+            ERROR
+          </div>
+          <div style="color: var(--text); font-size: 13px;">
+            <strong style="color: #e23e59;">Syntax Error in statement:</strong> 
+            <code>"${preview.replace(/</g, '&lt;')}"</code>
+            <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">
+              💡 <em>${expectedNote}</em>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+  });
+
+  /* Show results */
+  list.innerHTML = html;
+
+  /* Enable download button */
+  document.getElementById('downloadReportBtn').disabled = (lastReport.length === 0);
+
+  /* Apply glow effect to active category badges */
+  Object.keys(categoryCounts).forEach(cat => {
+    if (cat === 'ERROR') return;
+
+    const legendEl = document.querySelector(`.legend-${cat.toLowerCase()}`);
+
+    if (legendEl) {
+      legendEl.classList.add('active-glow');
+
+      const badge = document.createElement('div');
+      badge.className = 'glow-badge';
+      badge.style = `
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: var(--text);
+        color: var(--bg);
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        font-size: 12px;
+        font-weight: 800;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      `;
+      badge.innerText = categoryCounts[cat];
+
+      legendEl.style.position = 'relative';
+      legendEl.appendChild(badge);
+    }
+  });
+
+}
+
+</script>
+
 </body>
 </html>
