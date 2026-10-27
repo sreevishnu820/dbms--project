@@ -18,5 +18,11 @@ app.post('/classify', (req, res) => {
     res.json(result);
 });
 
+app.post('/api/ai-chat', (req, res) => {
+    const { prompt, agent } = req.body;
+    if (!prompt) return res.status(400).json({ error: "Prompt is required" });
+    res.json({ message: "Processed by backend AI route", prompt, agent });
+});
+
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
